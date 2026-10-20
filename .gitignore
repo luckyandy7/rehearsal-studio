@@ -1,0 +1,16 @@
+.impeccable/runtime/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+.design-tools/sources/
+
+# Local development tools and generated evidence
+.codegraph
+*.tsbuildinfo
+artifacts/
+.agents/skills/

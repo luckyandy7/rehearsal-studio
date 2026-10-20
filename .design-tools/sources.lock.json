@@ -1,0 +1,68 @@
+{
+  "retrieved_on": "2026-10-20",
+  "sources": [
+    {
+      "name": "react-bits",
+      "repository": "https://github.com/DavidHDev/react-bits",
+      "branch": "main",
+      "archive_sha256": "167ff76cbc38016467c7b1effbc2855824fc43d431157ada1d17ddac6577400f",
+      "path": ".design-tools/sources/react-bits"
+    },
+    {
+      "name": "magicui",
+      "repository": "https://github.com/magicuidesign/magicui",
+      "branch": "main",
+      "archive_sha256": "4de67de688fc1ceb76f4e15a99ef191827adab27970153be49f34255494704b1",
+      "path": ".design-tools/sources/magicui"
+    },
+    {
+      "name": "tweakcn",
+      "repository": "https://github.com/jnsahaj/tweakcn",
+      "branch": "main",
+      "archive_sha256": "6a583a3863c55123568daab764529c648705fb925f32bd7edba99bbf43809dac",
+      "path": ".design-tools/sources/tweakcn"
+    },
+    {
+      "name": "motion",
+      "repository": "https://github.com/motiondivision/motion",
+      "branch": "main",
+      "archive_sha256": "64561ae819cf502cca3ed47575854ab4c748f2fe56d56681cbd6e556d7bfc3db",
+      "path": ".design-tools/sources/motion"
+    },
+    {
+      "name": "motion-primitives",
+      "repository": "https://github.com/ibelick/motion-primitives",
+      "branch": "main",
+      "archive_sha256": "8f30c8d05a11e0199e37cd415c5121d835daff96d84784494997e5d0d930881d",
+      "path": ".design-tools/sources/motion-primitives"
+    },
+    {
+      "name": "animate-ui",
+      "repository": "https://github.com/imskyleen/animate-ui",
+      "branch": "main",
+      "archive_sha256": "5f907ff42cc671a173b5760a231922ad3f02b8d2b4989cd8c2baad76fc0ada52",
+      "path": ".design-tools/sources/animate-ui"
+    },
+    {
+      "name": "gsap",
+      "repository": "https://github.com/greensock/GSAP",
+      "branch": "master",
+      "archive_sha256": "bd808f26905b71f9f781092080b14997efc7631a4c5b138f11df6da13ec9345c",
+      "path": ".design-tools/sources/gsap"
+    },
+    {
+      "name": "anime",
+      "repository": "https://github.com/juliangarnier/anime",
+      "branch": "master",
+      "archive_sha256": "35c47bcf96eea16c76103b1b4156d5aa358a0a982ad9dcef7cab6b0a090acba9",
+      "path": ".design-tools/sources/anime"
+    },
+    {
+      "name": "penpot",
+      "repository": "https://github.com/penpot/penpot",
+      "branch": "develop",
+      "archive_sha256": "bc666f96e75742daddcc9e741d5b9c87b7f23ae7b0f43d929a2e8abb92ccc9f1",
+      "path": ".design-tools/sources/penpot"
+    }
+  ]
+}
