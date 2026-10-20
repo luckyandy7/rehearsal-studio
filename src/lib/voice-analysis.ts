@@ -34,10 +34,11 @@ export function pitchHz(
 	);
 	const mean = data.reduce((a, b) => a + b, 0) / data.length;
 	let best = 0;
-	let lag = 0;
+	const correlations: number[] = [];
+	const minimumLag = Math.floor(rate / 400);
 	for (
-		let offset = Math.floor(rate / 400);
-		offset <= Math.floor(rate / 75);
+		let offset = minimumLag - 1;
+		offset <= Math.ceil(rate / 75) + 1;
 		offset++
 	) {
 		let cross = 0,
@@ -51,12 +52,21 @@ export function pitchHz(
 			right += b * b;
 		}
 		const correlation = cross / Math.sqrt(left * right || 1);
-		if (correlation > best) {
-			best = correlation;
-			lag = offset;
+		correlations[offset] = correlation;
+		best = Math.max(best, correlation);
+	}
+	// Prefer the first strong local peak, not a later multiple of the period.
+	for (let lag = minimumLag; lag <= Math.ceil(rate / 75); lag++) {
+		const peak = correlations[lag] ?? 0;
+		const before = correlations[lag - 1] ?? 0;
+		const after = correlations[lag + 1] ?? 0;
+		if (peak > 0.75 && peak >= best * 0.95 && peak > before && peak >= after) {
+			const curve = before - 2 * peak + after;
+			const adjustment = curve ? (before - after) / (2 * curve) : 0;
+			return rate / (lag + adjustment);
 		}
 	}
-	return best > 0.75 && lag > 0 ? rate / lag : null;
+	return null;
 }
 // Mutable accumulator belongs to one microphone measurement, never to React render state.
 export class VoiceMeter {
