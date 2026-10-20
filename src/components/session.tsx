@@ -34,6 +34,11 @@ export function Session({
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [answer, setAnswer] = useState("");
 	const [busy, setBusy] = useState(false);
+	const [finishing, setFinishing] = useState(false);
+	const heading = useRef<HTMLHeadingElement>(null);
+	useEffect(() => {
+		heading.current?.focus();
+	}, []);
 	const [error, setError] = useState("");
 	const [started, setStarted] = useState(false);
 	const [paused, setPaused] = useState(false);
@@ -136,8 +141,12 @@ export function Session({
 			setBusy(false);
 		}
 	};
+	const hasAnswer =
+		messages.some((message) => message.role === "user") ||
+		Boolean(answer.trim());
 	const finish = async () => {
-		if (busy) return;
+		if (busy || !hasAnswer) return;
+		setFinishing(true);
 		const voiceAnalysis = coach.stop() ?? coach.analysis;
 		voice.disconnect();
 		setPaused(true);
@@ -189,6 +198,7 @@ export function Session({
 			setError(await errorMessage(cause));
 		} finally {
 			setBusy(false);
+			setFinishing(false);
 		}
 	};
 	return (
@@ -200,7 +210,9 @@ export function Session({
 							? "INTERVIEW ROOM"
 							: "PRESENTATION ROOM"}
 					</span>
-					<h1>{config.role}</h1>
+					<h1 ref={heading} tabIndex={-1}>
+						{config.role}
+					</h1>
 					<p>
 						{config.mode === "interview"
 							? "경험을 이야기하고, 꼬리 질문에 답해 보세요."
@@ -212,6 +224,37 @@ export function Session({
 					<small>/ {config.durationMinutes}분</small>
 				</span>
 			</header>
+			<section className="session-finish-bar" aria-label="연습 종료와 리포트">
+				<div>
+					<strong>
+						{finishing
+							? "답변을 정리해 리포트를 만들고 있어요"
+							: "연습의 마지막 단계, 나의 리포트"}
+					</strong>
+					<p id="report-action-hint" role="status">
+						{finishing
+							? "완료되면 리포트가 바로 열려요. 잠시 기다려 주세요."
+							: !hasAnswer
+								? "답변을 한 번 이상 남기면 리포트를 만들 수 있어요."
+								: connected
+									? "마지막 답변 자막을 확인한 뒤 눌러 주세요. 음성 연결도 종료됩니다."
+									: "준비됐다면 연습을 마치고 피드백을 확인하세요."}
+					</p>
+				</div>
+				<Button
+					busy={finishing}
+					disabled={busy || !hasAnswer}
+					aria-describedby="report-action-hint"
+					onClick={() => void finish()}
+				>
+					{finishing ? "리포트 생성 중" : "연습 종료 · 리포트 생성"}
+				</Button>
+				{(error || voice.error) && (
+					<p className="error-box session-finish-error" role="alert">
+						{error || voice.error} 대화 기록은 유지됩니다. 다시 시도해 주세요.
+					</p>
+				)}
+			</section>
 			{config.provider === "demo" && (
 				<p className="demo-banner">
 					데모 체험 · 준비된 질문 틀에 입력 자료를 넣습니다. 실제 AI·음성 연결은
@@ -423,27 +466,12 @@ export function Session({
 								않습니다.
 							</p>
 						)}
-						<Button
-							variant="secondary"
-							busy={busy}
-							disabled={
-								!messages.some((m) => m.role === "user") && !answer.trim()
-							}
-							onClick={() => void finish()}
-						>
-							연습 마치고 리포트 보기
-						</Button>
 					</section>
 				</aside>
 			</div>
 			{seconds >= config.durationMinutes * 60 && (
 				<p role="status">
 					목표 시간에 도달했어요. 연습을 마치거나 조금 더 이어갈 수 있어요.
-				</p>
-			)}
-			{(error || voice.error) && (
-				<p className="error-box" role="alert">
-					{error || voice.error} 대화 기록은 화면에 유지됩니다.
 				</p>
 			)}
 		</div>

@@ -9,13 +9,14 @@ import {
 	X,
 } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { readRecords, writeRecords } from "@/lib/storage";
 import type { Mode, PracticeRecord, SessionConfig } from "@/lib/types";
 import { History } from "./history";
 import { Home } from "./home";
 import { ReportView } from "./report";
 import { Session } from "./session";
+import { SessionGuide } from "./session-guide";
 import { Setup } from "./setup";
 import { Button } from "./ui";
 
@@ -28,6 +29,17 @@ export function StudioApp() {
 	const [view, setView] = useState<View>({ kind: "home" });
 	const [records, setRecords] = useState<PracticeRecord[]>([]);
 	const [notice, setNotice] = useState("");
+	const [pendingSession, setPendingSession] = useState<SessionConfig | null>(
+		null,
+	);
+	const entryFocus = useRef<HTMLElement | null>(null);
+	const prepareSession = (config: SessionConfig) => {
+		entryFocus.current =
+			document.activeElement instanceof HTMLElement
+				? document.activeElement
+				: null;
+		setPendingSession(config);
+	};
 	useEffect(() => {
 		try {
 			setRecords(readRecords());
@@ -68,6 +80,21 @@ export function StudioApp() {
 	};
 	return (
 		<div className="app-shell">
+			{pendingSession && (
+				<SessionGuide
+					config={pendingSession}
+					returnFocus={entryFocus.current}
+					onCancel={() => setPendingSession(null)}
+					onEnter={() => {
+						setView({
+							kind: "session",
+							config: pendingSession,
+							id: crypto.randomUUID(),
+						});
+						setPendingSession(null);
+					}}
+				/>
+			)}
 			<a className="skip-link" href="#main">
 				본문으로 이동
 			</a>
@@ -190,9 +217,7 @@ export function StudioApp() {
 							key={view.mode}
 							mode={view.mode}
 							onBack={() => setView({ kind: "home" })}
-							onStart={(config) =>
-								setView({ kind: "session", config, id: crypto.randomUUID() })
-							}
+							onStart={prepareSession}
 						/>
 					)}
 					{view.kind === "session" && (
@@ -219,9 +244,7 @@ export function StudioApp() {
 						<ReportView
 							record={view.record}
 							onBack={() => setView({ kind: "history" })}
-							onRetry={(config) =>
-								setView({ kind: "session", config, id: crypto.randomUUID() })
-							}
+							onRetry={prepareSession}
 						/>
 					)}
 				</main>

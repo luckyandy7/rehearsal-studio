@@ -973,3 +973,48 @@
 .voice-advice p {
 	margin: 6px 0;
 }
+
+.session-guide h2 {
+	font-size: 24px;
+	line-height: 1.4;
+	margin: 12px 0;
+	text-wrap: balance;
+}
+.session-guide .session-guide-steps {
+	list-style: decimal;
+	padding-left: 24px;
+	margin: 24px 0;
+}
+.session-guide-steps li {
+	padding-left: 4px;
+	margin-bottom: 16px;
+}
+.session-guide-steps li::marker {
+	color: var(--primary);
+	font-weight: 700;
+}
+.session-guide-steps li p {
+	margin: 4px 0 0;
+}
+.session-guide-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+.session-guide-actions .button {
+	flex: 1 1 180px;
+}
+.session-guide {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+.session-guide .session-guide-steps {
+	min-height: 0;
+	overflow-y: auto;
+	padding-right: 8px;
+	margin: 16px 0;
+}
+.session-guide-actions {
+	flex-shrink: 0;
+}
