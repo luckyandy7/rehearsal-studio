@@ -15,6 +15,7 @@ import {
 	type PracticeRecord,
 	type SessionConfig,
 } from "@/lib/types";
+import { EmployerMaterials, QuestionSources } from "./employer-context";
 import "./screens.css";
 
 type Props = {
@@ -165,6 +166,9 @@ export function ReportView({ record, onBack, onRetry }: Props) {
 			) : (
 				<section className="form-panel">
 					<h2>전체 대화</h2>
+					{record.config.mode === "interview" && (
+						<EmployerMaterials context={record.config.interviewContext} />
+					)}
 					<div className="report-transcript">
 						{record.messages.length === 0 ? (
 							<p>저장된 대화가 없습니다.</p>
@@ -178,6 +182,7 @@ export function ReportView({ record, onBack, onRetry }: Props) {
 										{message.role === "user" ? "나의 답변" : "AI 질문"}
 									</span>
 									<p>{message.content}</p>
+									<QuestionSources sources={message.sources} />
 								</article>
 							))
 						)}

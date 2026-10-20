@@ -1,9 +1,15 @@
 import { z } from "zod";
+import {
+	emptyInterviewContext,
+	interviewContextSchema,
+	questionSourceSchema,
+} from "./interview-context";
 
 export const modeSchema = z.enum(["interview", "presentation"]);
 export type Mode = z.infer<typeof modeSchema>;
 export const configSchema = z.object({
 	mode: modeSchema,
+	interviewContext: interviewContextSchema.default(emptyInterviewContext),
 	material: z.string().min(20).max(30000),
 	role: z.string().min(1).max(160),
 	difficulty: z.enum(["gentle", "normal", "pressure"]),
@@ -15,6 +21,7 @@ export type SessionConfig = z.infer<typeof configSchema>;
 export const messageSchema = z.object({
 	role: z.enum(["user", "assistant"]),
 	content: z.string().max(12000),
+	sources: z.array(questionSourceSchema).max(3).optional(),
 });
 export type Message = z.infer<typeof messageSchema>;
 export const reportSchema = z.object({

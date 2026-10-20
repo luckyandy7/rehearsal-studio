@@ -89,19 +89,9 @@ export function useRealtime({
 		const current = connection.current;
 		if (!current || current.muted || current.responding || current.playing)
 			return;
-		if (
-			send({
-				type: "response.create",
-				response: {
-					instructions:
-						config.mode === "presentation"
-							? "방금까지의 발표 내용과 제출 자료를 바탕으로 근거를 확인하는 날카로운 질문 또는 반박을 한국어로 하나만 짧게 하세요. 아직 발언이 없다면 발표를 시작해 달라고 하세요."
-							: "이전 답변과 제출 자료를 바탕으로 구체적인 후속 면접 질문을 한국어로 하나만 하세요.",
-				},
-			})
-		)
-			current.responding = true;
-	}, [config.mode, send]);
+		// Keep the session instructions, including employer and resume context.
+		if (send({ type: "response.create" })) current.responding = true;
+	}, [send]);
 	const toggleMute = useCallback(() => {
 		const current = connection.current;
 		if (!current?.stream) return;
@@ -211,15 +201,7 @@ export function useRealtime({
 			if (!live()) return;
 			if (current.deadline) clearTimeout(current.deadline);
 			ready();
-			send({
-				type: "response.create",
-				response: {
-					instructions:
-						config.mode === "interview"
-							? "한국어로 짧게 인사하고 제출 자료에 근거한 첫 면접 질문을 하나만 하세요."
-							: "한국어로 발표를 시작해 달라는 안내를 한 문장으로 하고 발표를 들으세요.",
-				},
-			});
+			send({ type: "response.create" });
 			current.responding = true;
 		};
 		channel.onclose = () => {

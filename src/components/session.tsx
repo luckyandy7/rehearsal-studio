@@ -1,14 +1,16 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { z } from "zod";
 import { useRealtime } from "@/hooks/use-realtime";
 import { api, errorMessage } from "@/lib/api";
+import { demoQuestion } from "@/lib/demo-question";
+import { questionSchema } from "@/lib/interview-context";
 import {
 	type Message,
 	type PracticeRecord,
 	reportSchema,
 	type SessionConfig,
 } from "@/lib/types";
+import { EmployerMaterials, QuestionSources } from "./employer-context";
 import { Button, Waveform } from "./ui";
 import "./session.css";
 
@@ -86,36 +88,28 @@ export function Session({
 		setError("");
 		controller.current = new AbortController();
 		try {
-			let text: string;
-			if (config.provider === "demo") {
-				const questions =
-					config.mode === "interview"
-						? [
-								"지원한 역할과 관련된 경험을 하나 소개해 주세요.",
-								"그 경험에서 본인이 직접 해결한 문제는 무엇인가요?",
-								"결과를 확인할 수 있는 구체적인 근거가 있나요?",
-							]
-						: [
-								"발표의 핵심 문제와 해결 방법을 설명해 주세요.",
-								"잠깐, 기존 방법보다 낫다는 근거가 무엇인가요?",
-								"실제 사용자가 이 방법을 선택할 이유는 무엇인가요?",
-							];
-				text =
-					questions[
-						next.filter((m) => m.role === "user").length % questions.length
-					] ??
-					questions[0] ??
-					"";
-			} else {
-				const data = await api
-					.post("/api/turn", {
-						json: { ...config, messages: next, action },
-						signal: controller.current.signal,
-					})
-					.json<unknown>();
-				text = z.object({ text: z.string() }).parse(data).text;
-			}
-			setMessages([...next, { role: "assistant", content: text }]);
+			const question =
+				config.provider === "demo"
+					? demoQuestion(
+							config,
+							next.filter((message) => message.role === "user").length,
+						)
+					: questionSchema.parse(
+							await api
+								.post("/api/turn", {
+									json: { ...config, messages: next, action },
+									signal: controller.current.signal,
+								})
+								.json<unknown>(),
+						);
+			setMessages([
+				...next,
+				{
+					role: "assistant",
+					content: question.text,
+					sources: question.sources,
+				},
+			]);
 			setAnswer("");
 			setStarted(true);
 		} catch (cause) {
@@ -200,8 +194,8 @@ export function Session({
 			</header>
 			{config.provider === "demo" && (
 				<p className="demo-banner">
-					데모 체험 · 미리 준비된 질문입니다. 실제 AI·음성 연결은 사용하지
-					않습니다.
+					데모 체험 · 준비된 질문 틀에 입력 자료를 넣습니다. 실제 AI·음성 연결은
+					사용하지 않습니다.
 				</p>
 			)}
 			<div className="practice-grid">
@@ -288,6 +282,7 @@ export function Session({
 											: "AI 심사위원"}
 								</strong>
 								<p>{message.content}</p>
+								<QuestionSources sources={message.sources} />
 							</article>
 						))}
 						<div ref={end} />
@@ -347,6 +342,9 @@ export function Session({
 					)}
 				</section>
 				<aside className="practice-aside">
+					{config.mode === "interview" && (
+						<EmployerMaterials context={config.interviewContext} />
+					)}
 					<section className="form-panel">
 						<h2>오늘의 연습 자료</h2>
 						<p className="material-text">{config.material}</p>

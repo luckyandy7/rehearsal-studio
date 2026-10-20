@@ -11,12 +11,14 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui";
 import { api, errorMessage } from "@/lib/api";
+import { emptyInterviewContext } from "@/lib/interview-context";
 import {
 	configSchema,
 	type Mode,
 	modeLabels,
 	type SessionConfig,
 } from "@/lib/types";
+import { EmployerFields } from "./employer-context";
 import "./screens.css";
 
 const examples: Record<Mode, string> = {
@@ -31,6 +33,9 @@ type Props = {
 	readonly onStart: (config: SessionConfig) => void;
 };
 export function Setup({ mode, onBack, onStart }: Props) {
+	const [interviewContext, setInterviewContext] = useState(
+		emptyInterviewContext,
+	);
 	const [material, setMaterial] = useState("");
 	const [role, setRole] = useState(
 		mode === "interview" ? "신입 프론트엔드 개발자" : "교내 ICT 경진대회",
@@ -95,10 +100,12 @@ export function Setup({ mode, onBack, onStart }: Props) {
 			durationMinutes,
 			provider,
 			fileName,
+			interviewContext:
+				mode === "interview" ? interviewContext : emptyInterviewContext,
 		});
 		if (!parsed.success) {
 			setError(
-				"자료는 20~30,000자, 목표는 1~160자, 연습 시간은 1~30분으로 입력해 주세요.",
+				"자료는 20~30,000자, 목표는 1~160자, 연습 시간은 1~30분으로 입력해 주세요. 기업 자료는 각 입력란의 글자 수 제한을 확인해 주세요.",
 			);
 			return;
 		}
@@ -118,7 +125,7 @@ export function Setup({ mode, onBack, onStart }: Props) {
 				<h1>{modeLabels[mode]} 준비</h1>
 				<p>
 					{mode === "interview"
-						? "나의 경험을 알려주세요. 그 안에서 질문을 찾을게요."
+						? "내 경험과 기업 자료를 연결해, 지원 직무에 맞게 연습해요."
 						: "발표 자료를 알려주세요. 심사위원의 시선으로 질문할게요."}
 				</p>
 			</header>
@@ -135,6 +142,15 @@ export function Setup({ mode, onBack, onStart }: Props) {
 							onClick={() => {
 								setMaterial(examples[mode]);
 								setFileName("예시 자료");
+								if (mode === "interview")
+									setInterviewContext({
+										jobPosting:
+											"가상 기업 리허설랩의 프론트엔드 개발자 채용. 담당 업무: React 기반 화면 개발과 사용자 경험 개선. 필수 역량: 사용자 피드백을 분석하고 팀과 협업한 경험. 우대 사항: 사용성 테스트 경험.",
+										companyInfo:
+											"리허설랩은 면접 연습 서비스를 만드는 가상 기업입니다. 실제 기업의 채용공고가 아닌 체험용 예시입니다.",
+										companyValues:
+											"고객 중심: 사용자 의견을 직접 듣고 개선 결과를 확인합니다. 협업: 서로 다른 의견의 근거를 공유하고 함께 결정합니다.",
+									});
 								setError("");
 							}}
 						>
@@ -176,7 +192,7 @@ export function Setup({ mode, onBack, onStart }: Props) {
 						</p>
 					)}
 					<label className="field-label" htmlFor="material">
-						{mode === "interview" ? "자기소개서 / 경험" : "발표 내용"}{" "}
+						{mode === "interview" ? "이력서 / 자기소개서 / 경험" : "발표 내용"}{" "}
 						<span>직접 입력하거나 수정할 수 있어요</span>
 					</label>
 					<textarea
@@ -198,6 +214,13 @@ export function Setup({ mode, onBack, onStart }: Props) {
 						<span>텍스트가 없는 스캔 파일은 직접 입력해 주세요.</span>
 						<span>{material.length.toLocaleString()} / 30,000</span>
 					</div>
+					{mode === "interview" && (
+						<EmployerFields
+							value={interviewContext}
+							onChange={setInterviewContext}
+							disabled={busy}
+						/>
+					)}
 				</section>
 				<div className="setup-side">
 					<section className="form-panel">
