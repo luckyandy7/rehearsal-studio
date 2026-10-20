@@ -4,6 +4,25 @@ export const interviewContextSchema = z.object({
 	jobPosting: z.string().trim().max(8000).default(""),
 	companyInfo: z.string().trim().max(4000).default(""),
 	companyValues: z.string().trim().max(4000).default(""),
+	sourceUrls: z
+		.object({
+			jobPosting: z
+				.string()
+				.url()
+				.regex(/^https?:\/\//)
+				.optional(),
+			companyInfo: z
+				.string()
+				.url()
+				.regex(/^https?:\/\//)
+				.optional(),
+			companyValues: z
+				.string()
+				.url()
+				.regex(/^https?:\/\//)
+				.optional(),
+		})
+		.optional(),
 });
 export const emptyInterviewContext = {
 	jobPosting: "",

@@ -16,6 +16,7 @@ import {
 	type SessionConfig,
 } from "@/lib/types";
 import { EmployerMaterials, QuestionSources } from "./employer-context";
+import { VoiceFeedback } from "./voice-feedback";
 import "./screens.css";
 
 type Props = {
@@ -90,6 +91,11 @@ export function ReportView({ record, onBack, onRetry }: Props) {
 					<small>실력 점수가 아닌 연습 시간 비율</small>
 				</div>
 			</section>
+			{record.voiceAnalysis && (
+				<section className="form-panel">
+					<VoiceFeedback analysis={record.voiceAnalysis} />
+				</section>
+			)}
 			<div className="report-tabs">
 				<button
 					type="button"

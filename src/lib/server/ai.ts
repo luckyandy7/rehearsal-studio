@@ -16,5 +16,13 @@ export function client(): OpenAI {
 }
 
 export function textModel(): string {
-	return process.env.OPENAI_MODEL || "gpt-4.1-mini";
+	return process.env.OPENAI_MODEL || "gpt-6-luna";
+}
+
+export function reportModel(): string {
+	return process.env.OPENAI_REPORT_MODEL || "gpt-6.1-sol";
+}
+
+export function realtimeModel(): string {
+	return process.env.OPENAI_REALTIME_MODEL || "gpt-realtime-2.1-mini";
 }

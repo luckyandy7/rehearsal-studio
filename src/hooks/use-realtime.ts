@@ -13,9 +13,13 @@ import {
 export function useRealtime({
 	config,
 	onMessage,
+	onStream,
+	onStreamEnd,
 }: {
 	readonly config: SessionConfig;
 	readonly onMessage: (message: Message) => void;
+	readonly onStream: (stream: MediaStream) => void;
+	readonly onStreamEnd: () => void;
 }) {
 	const [status, setStatus] = useState<VoiceStatus>("idle");
 	const [error, setError] = useState<string | null>(null);
@@ -23,6 +27,14 @@ export function useRealtime({
 	const [level, setLevel] = useState(0);
 	const connection = useRef<VoiceConnection | null>(null);
 	const callback = useRef(onMessage);
+	const streamCallback = useRef(onStream);
+	const streamEndCallback = useRef(onStreamEnd);
+	useEffect(() => {
+		streamEndCallback.current = onStreamEnd;
+	}, [onStreamEnd]);
+	useEffect(() => {
+		streamCallback.current = onStream;
+	}, [onStream]);
 	useEffect(() => {
 		callback.current = onMessage;
 	}, [onMessage]);
@@ -31,6 +43,7 @@ export function useRealtime({
 		const current = connection.current;
 		connection.current = null;
 		if (!current) return;
+		streamEndCallback.current();
 		current.controller.abort();
 		if (current.deadline) clearTimeout(current.deadline);
 		if (current.meter) clearInterval(current.meter);
@@ -245,6 +258,7 @@ export function useRealtime({
 				return;
 			}
 			current.stream = stream;
+			streamCallback.current(stream);
 			for (const track of stream.getAudioTracks()) peer.addTrack(track, stream);
 			const context = new AudioContext();
 			current.context = context;

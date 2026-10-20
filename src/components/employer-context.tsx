@@ -1,5 +1,6 @@
 import type { InterviewContext, QuestionSource } from "@/lib/interview-context";
 import { sourceLabels } from "@/lib/interview-context";
+import { EmployerField, type EmployerUpdate } from "./employer-field";
 
 const fields = [
 	{
@@ -26,11 +27,13 @@ const fields = [
 export function EmployerFields({
 	value,
 	onChange,
+	onPending,
 	disabled,
 }: {
 	readonly value: InterviewContext;
-	readonly onChange: (value: InterviewContext) => void;
+	readonly onChange: (update: EmployerUpdate) => void;
 	readonly disabled: boolean;
+	readonly onPending: (key: string, pending: boolean) => void;
 }) {
 	return (
 		<section className="employer-fields">
@@ -38,31 +41,25 @@ export function EmployerFields({
 				기업에 맞춘 질문 준비 <span className="tag">선택</span>
 			</h3>
 			<p className="context-hint">
-				공고의 요구 역량과 기업 가치를 내 경험에 연결해 질문해요. 공식 채용
-				페이지의 내용을 복사해 주세요. URL 자동 수집은 지원하지 않아요.
+				공식 채용 페이지의 URL에서 내용을 가져와 확인해 주세요. 수집이 안 되거나
+				직접 적으려면 수동 입력을 선택하세요. 각 자료는 선택 사항이에요.
 			</p>
 			{fields.map((field) => (
-				<div key={field.key}>
-					<label className="field-label" htmlFor={field.key}>
-						{field.label}
-					</label>
-					<textarea
-						id={field.key}
-						rows={4}
-						maxLength={field.limit}
-						value={value[field.key]}
-						disabled={disabled}
-						placeholder={field.placeholder}
-						onChange={(event) =>
-							onChange({ ...value, [field.key]: event.target.value })
-						}
-						aria-describedby={`${field.key}-count`}
-					/>
-					<small id={`${field.key}-count`} className="context-count">
-						{value[field.key].length.toLocaleString()} /{" "}
-						{field.limit.toLocaleString()}
-					</small>
-				</div>
+				<EmployerField
+					key={field.key}
+					field={field}
+					value={value[field.key]}
+					sourceUrl={value.sourceUrls?.[field.key]}
+					disabled={disabled}
+					onPending={(pending) => onPending(field.key, pending)}
+					onChange={(text, url) =>
+						onChange((previous) => ({
+							...previous,
+							[field.key]: text,
+							sourceUrls: { ...previous.sourceUrls, [field.key]: url },
+						}))
+					}
+				/>
 			))}
 		</section>
 	);
@@ -78,12 +75,21 @@ export function EmployerMaterials({
 		<section className="form-panel employer-materials">
 			<h2>이번 면접의 기업 자료</h2>
 			<p className="context-hint">
-				직접 제공한 자료입니다. 텍스트·음성 질문과 피드백에 함께 전달해요.
+				확인한 자료를 텍스트·음성 질문과 피드백에 함께 전달해요.
 			</p>
 			{supplied.map((field) => (
 				<details key={field.key}>
 					<summary>{field.label}</summary>
 					<p className="material-text">{context[field.key]}</p>
+					{context.sourceUrls?.[field.key] && (
+						<a
+							href={context.sourceUrls[field.key]}
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							참고 URL 열기
+						</a>
+					)}
 				</details>
 			))}
 		</section>

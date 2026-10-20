@@ -911,3 +911,65 @@
 	font-size: 13px;
 	line-height: 1.8;
 }
+.url-controls {
+	display: flex;
+	align-items: start;
+	gap: 8px;
+}
+.url-controls input {
+	min-width: 0;
+	flex: 1;
+}
+.url-controls .button {
+	flex-shrink: 0;
+}
+.employer-field {
+	margin-top: 20px;
+}
+.employer-field a,
+.employer-materials a {
+	color: var(--primary);
+	overflow-wrap: anywhere;
+	text-decoration: underline;
+}
+@media (max-width: 560px) {
+	.url-controls {
+		flex-direction: column;
+		align-items: stretch;
+	}
+}
+.voice-feedback h3 {
+	font-size: 17px;
+	margin: 20px 0 12px;
+}
+.voice-metrics {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+	gap: 12px;
+	margin: 16px 0;
+}
+.voice-metrics div {
+	padding: 12px;
+	border-radius: 8px;
+	background: var(--background);
+}
+.voice-metrics dt {
+	font-size: 12px;
+	color: var(--muted);
+}
+.voice-metrics dd {
+	margin: 6px 0 0;
+	font-size: 18px;
+	font-variant-numeric: tabular-nums;
+}
+.voice-advice {
+	padding-left: 20px;
+}
+.voice-advice li {
+	margin-bottom: 18px;
+	font-size: 14px;
+	line-height: 1.8;
+}
+.voice-advice p {
+	margin: 6px 0;
+}

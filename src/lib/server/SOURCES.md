@@ -2,7 +2,9 @@
 
 Verified 2026-10-20 against official documentation via Context7 and OpenAI pages.
 
-- https://developers.openai.com/api/docs/models/gpt-4.1-mini — inexpensive text default; can override with OPENAI_MODEL.
+- https://developers.openai.com/api/docs/models/gpt-6-luna.md — question default; OPENAI_MODEL override.
+- https://developers.openai.com/api/docs/guides/latest-model.md — GPT-6.1 Sol report default; OPENAI_REPORT_MODEL override.
+- https://developers.openai.com/api/docs/models/gpt-realtime-2.1-mini.md — Realtime default; OPENAI_REALTIME_MODEL override.
 - https://developers.openai.com/api/docs/guides/structured-outputs — Responses parse and zodTextFormat for feedback.
 - https://developers.openai.com/api/docs/guides/text-to-speech — gpt-4o-mini-tts, MP3 and marin voice.
 - https://developers.openai.com/api/docs/guides/speech-to-text — gpt-4o-mini-transcribe.
@@ -17,3 +19,5 @@ POST /api/realtime establishes OpenAI Realtime WebRTC through the unified server
 - https://developers.openai.com/api/docs/api-reference/realtime/create-call — nested audio input/transcription and server_vad create_response/interrupt_response fields.
 
 Per-process rate cap and browser same-origin checks are local prototype safeguards, not authentication. Bind to localhost for local use. Add authentication and durable per-user quotas before exposing publicly.
+
+URL import uses Node HTTP(S), a validated and pinned public DNS address per redirect, a 12-second deadline, a 2 MB response cap, and Cheerio text extraction. It does not run page JavaScript or bypass authentication. Voice coaching uses local Web Audio RMS and autocorrelation estimates; it is not an emotion classifier. Only aggregate metrics are persisted and optionally sent to the report API.

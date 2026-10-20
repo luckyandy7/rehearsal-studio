@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRealtime } from "@/hooks/use-realtime";
+import { useVoiceAnalysis } from "@/hooks/use-voice-analysis";
 import { api, errorMessage } from "@/lib/api";
 import { demoQuestion } from "@/lib/demo-question";
 import { questionSchema } from "@/lib/interview-context";
@@ -12,6 +13,7 @@ import {
 } from "@/lib/types";
 import { EmployerMaterials, QuestionSources } from "./employer-context";
 import { Button, Waveform } from "./ui";
+import { VoiceFeedback } from "./voice-feedback";
 import "./session.css";
 
 const labels = {
@@ -38,12 +40,28 @@ export function Session({
 	const [seconds, setSeconds] = useState(0);
 	const controller = useRef<AbortController | null>(null);
 	const end = useRef<HTMLDivElement>(null);
+	const sampleEnabled = useRef(true);
+	const coach = useVoiceAnalysis(() => sampleEnabled.current);
 	const onMessage = useCallback(
-		(message: Message) => setMessages((previous) => [...previous, message]),
-		[],
+		(message: Message) => {
+			if (message.role === "user") coach.addTranscript(message.content);
+			setMessages((previous) => [...previous, message]);
+		},
+		[coach.addTranscript],
 	);
-	const voice = useRealtime({ config, onMessage });
+	const voice = useRealtime({
+		config,
+		onMessage,
+		onStreamEnd: () => {
+			coach.stop();
+		},
+		onStream: (stream) => {
+			void coach.start(stream);
+		},
+	});
 	const connected = !["idle", "error"].includes(voice.status);
+	sampleEnabled.current =
+		!paused && (connected ? voice.status === "listening" : !busy);
 	useEffect(() => {
 		if (messages.length >= 76 && connected) {
 			voice.disconnect();
@@ -120,6 +138,7 @@ export function Session({
 	};
 	const finish = async () => {
 		if (busy) return;
+		const voiceAnalysis = coach.stop() ?? coach.analysis;
 		voice.disconnect();
 		setPaused(true);
 		setBusy(true);
@@ -152,7 +171,7 @@ export function Session({
 					: reportSchema.parse(
 							await api
 								.post("/api/report", {
-									json: { ...config, messages: next },
+									json: { ...config, messages: next, voiceAnalysis },
 									signal: controller.current.signal,
 								})
 								.json<unknown>(),
@@ -164,6 +183,7 @@ export function Session({
 				messages: next,
 				report,
 				elapsedSeconds: seconds,
+				...(voiceAnalysis ? { voiceAnalysis } : {}),
 			});
 		} catch (cause) {
 			setError(await errorMessage(cause));
@@ -218,7 +238,7 @@ export function Session({
 						</h2>
 						<p>
 							{connected
-								? "AI가 생성한 음성입니다. 대화가 자막으로 기록됩니다."
+								? "AI가 생성한 음성입니다. 답변 자막이 나온 뒤 연습을 마쳐주세요."
 								: "글로 답하거나 실시간 음성으로 연습할 수 있어요."}
 						</p>
 						<div className="session-controls">
@@ -227,8 +247,11 @@ export function Session({
 									variant="secondary"
 									disabled={busy || (messages.length > 0 && !connected)}
 									onClick={() => {
-										if (connected) voice.disconnect();
-										else {
+										if (connected) {
+											coach.stop();
+											voice.disconnect();
+										} else {
+											coach.stop();
 											setStarted(true);
 											setPaused(false);
 											void voice.connect();
@@ -342,6 +365,38 @@ export function Session({
 					)}
 				</section>
 				<aside className="practice-aside">
+					<section className="form-panel">
+						<h2>마이크 말하기 분석</h2>
+						<p className="context-hint">
+							조용한 곳에서 10초 이상 말해 보세요. 음성 연결 시에도 분석을
+							시도합니다. AI 발화·일시 정지 중에는 측정을 쉽니다. 원본 음성은
+							저장하지 않아요.
+						</p>
+						<div className="session-controls">
+							<Button
+								variant="secondary"
+								busy={coach.connecting}
+								disabled={connected || busy}
+								onClick={() => {
+									if (coach.active) coach.stop();
+									else void coach.start();
+								}}
+							>
+								{coach.active ? "분석 마치기" : "말하기 분석 시작"}
+							</Button>
+						</div>
+						{coach.active && (
+							<p role="status">
+								마이크 분석 중 · {Math.floor(coach.seconds)}초
+							</p>
+						)}
+						{coach.error && (
+							<p className="error-box" role="alert">
+								{coach.error}
+							</p>
+						)}
+						<VoiceFeedback analysis={coach.analysis} />
+					</section>
 					{config.mode === "interview" && (
 						<EmployerMaterials context={config.interviewContext} />
 					)}

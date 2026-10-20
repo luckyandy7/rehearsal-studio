@@ -4,6 +4,7 @@ import {
 	interviewContextSchema,
 	questionSourceSchema,
 } from "./interview-context";
+import { voiceAnalysisSchema } from "./voice-analysis";
 
 export const modeSchema = z.enum(["interview", "presentation"]);
 export type Mode = z.infer<typeof modeSchema>;
@@ -39,6 +40,7 @@ export const recordSchema = z.object({
 	messages: z.array(messageSchema),
 	report: reportSchema,
 	elapsedSeconds: z.number(),
+	voiceAnalysis: voiceAnalysisSchema.optional(),
 });
 export type PracticeRecord = z.infer<typeof recordSchema>;
 export const modeLabels: Record<Mode, string> = {

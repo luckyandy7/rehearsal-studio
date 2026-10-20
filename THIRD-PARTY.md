@@ -1,6 +1,6 @@
 # 오픈소스 고지
 
-실행 의존성은 package.json 및 pnpm-lock.yaml을 참조한다. React, Next.js, Motion, Radix UI, Phosphor Icons, OpenAI SDK, Zod, ky, mammoth, pdf-parse, fflate, Tailwind CSS를 사용한다.
+실행 의존성은 package.json 및 pnpm-lock.yaml을 참조한다. React, Next.js, Motion, Radix UI, Phosphor Icons, OpenAI SDK, Zod, ky, mammoth, pdf-parse, fflate, Cheerio (MIT), ipaddr.js (MIT), Tailwind CSS를 사용한다.
 
 src/components/ui.tsx는 다음 원본의 구현 방식을 참고해 프로젝트 토큰에 맞게 재작성했다. 원본 전체 컴포넌트를 그대로 포함하지 않는다.
 

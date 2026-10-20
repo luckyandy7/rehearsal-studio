@@ -19,7 +19,8 @@ export async function POST(request: Request): Promise<Response> {
 			{
 				model: textModel(),
 				store: false,
-				max_output_tokens: 1000,
+				max_output_tokens: 1600,
+				reasoning: { effort: "none" },
 				text: { format: zodTextFormat(questionSchema, "practice_question") },
 				instructions: `${instructions(input)}\n현재 행동: ${actions[input.action]}\n질문을 text에 넣으세요. sources에는 질문에 실제 사용한 자료의 짧은 원문 인용(240자 이하)을 최대 3개 넣으세요. kind는 jobPosting, companyInfo, companyValues, resume 중 하나입니다. 원문을 그대로 복사하고 없는 문구를 만들지 마세요. 면접에서 기업 자료가 있으면 관련 기업 자료와 이력서의 연결 근거를 선택하세요. 근거가 없으면 빈 배열로 반환하세요.`,
 				input: JSON.stringify(input),

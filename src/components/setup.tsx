@@ -11,7 +11,10 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui";
 import { api, errorMessage } from "@/lib/api";
-import { emptyInterviewContext } from "@/lib/interview-context";
+import {
+	emptyInterviewContext,
+	type InterviewContext,
+} from "@/lib/interview-context";
 import {
 	configSchema,
 	type Mode,
@@ -33,7 +36,7 @@ type Props = {
 	readonly onStart: (config: SessionConfig) => void;
 };
 export function Setup({ mode, onBack, onStart }: Props) {
-	const [interviewContext, setInterviewContext] = useState(
+	const [interviewContext, setInterviewContext] = useState<InterviewContext>(
 		emptyInterviewContext,
 	);
 	const [material, setMaterial] = useState("");
@@ -49,6 +52,10 @@ export function Setup({ mode, onBack, onStart }: Props) {
 	const [statusError, setStatusError] = useState("");
 	const [error, setError] = useState("");
 	const [busy, setBusy] = useState(false);
+	const [importingFields, setImportingFields] = useState<
+		Record<string, boolean>
+	>({});
+	const importing = Object.values(importingFields).some(Boolean);
 	const uploadRef = useRef<HTMLInputElement>(null);
 	useEffect(() => {
 		const controller = new AbortController();
@@ -91,6 +98,7 @@ export function Setup({ mode, onBack, onStart }: Props) {
 	}
 	function submit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+		if (busy || importing) return;
 		setError("");
 		const parsed = configSchema.safeParse({
 			mode,
@@ -138,7 +146,7 @@ export function Setup({ mode, onBack, onStart }: Props) {
 						<Button
 							type="button"
 							variant="ghost"
-							disabled={busy}
+							disabled={busy || importing}
 							onClick={() => {
 								setMaterial(examples[mode]);
 								setFileName("예시 자료");
@@ -163,7 +171,7 @@ export function Setup({ mode, onBack, onStart }: Props) {
 						className="visually-hidden"
 						id="material-file"
 						accept=".pdf,.docx,.pptx,.txt"
-						disabled={busy}
+						disabled={busy || importing}
 						onChange={(event) => {
 							const file = event.target.files?.[0];
 							if (file) void upload(file);
@@ -173,7 +181,7 @@ export function Setup({ mode, onBack, onStart }: Props) {
 					<button
 						className="upload-zone"
 						type="button"
-						disabled={busy}
+						disabled={busy || importing}
 						onClick={() => uploadRef.current?.click()}
 						aria-describedby="upload-help"
 					>
@@ -201,7 +209,7 @@ export function Setup({ mode, onBack, onStart }: Props) {
 						minLength={20}
 						maxLength={30000}
 						required
-						disabled={busy}
+						disabled={busy || importing}
 						value={material}
 						onChange={(event) => setMaterial(event.target.value)}
 						placeholder={
@@ -218,7 +226,13 @@ export function Setup({ mode, onBack, onStart }: Props) {
 						<EmployerFields
 							value={interviewContext}
 							onChange={setInterviewContext}
-							disabled={busy}
+							onPending={(key, pending) =>
+								setImportingFields((previous) => ({
+									...previous,
+									[key]: pending,
+								}))
+							}
+							disabled={busy || importing}
 						/>
 					)}
 				</section>
@@ -318,8 +332,12 @@ export function Setup({ mode, onBack, onStart }: Props) {
 					</div>
 					<Button
 						type="submit"
-						busy={busy}
-						disabled={busy || (provider === "openai" && configured !== true)}
+						busy={busy || importing}
+						disabled={
+							busy ||
+							importing ||
+							(provider === "openai" && configured !== true)
+						}
 					>
 						{provider === "demo" ? "데모 연습 시작" : "리허설 시작"}{" "}
 						<ArrowRight size={18} />

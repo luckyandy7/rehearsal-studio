@@ -3,6 +3,7 @@ import {
 	emptyInterviewContext,
 	interviewContextSchema,
 } from "../interview-context";
+import { voiceAnalysisSchema } from "../voice-analysis";
 
 export const sessionSchema = z.object({
 	mode: z.enum(["interview", "presentation"]),
@@ -10,6 +11,7 @@ export const sessionSchema = z.object({
 	material: z.string().trim().max(30_000),
 	role: z.string().trim().max(200),
 	difficulty: z.enum(["gentle", "normal", "pressure"]),
+	voiceAnalysis: voiceAnalysisSchema.optional(),
 	messages: z
 		.array(
 			z.object({
