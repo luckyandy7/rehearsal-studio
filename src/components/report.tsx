@@ -15,6 +15,7 @@ import {
 	type PracticeRecord,
 	type SessionConfig,
 } from "@/lib/types";
+import { CameraFeedback } from "./camera-feedback";
 import { EmployerMaterials, QuestionSources } from "./employer-context";
 import { VoiceFeedback } from "./voice-feedback";
 import "./screens.css";
@@ -25,7 +26,9 @@ type Props = {
 	readonly onRetry: (config: SessionConfig) => void;
 };
 export function ReportView({ record, onBack, onRetry }: Props) {
-	const [tab, setTab] = useState<"feedback" | "transcript">("feedback");
+	const [tab, setTab] = useState<"feedback" | "transcript" | "camera">(
+		"feedback",
+	);
 	const answers = record.messages.filter(
 		(message) => message.role === "user",
 	).length;
@@ -106,13 +109,26 @@ export function ReportView({ record, onBack, onRetry }: Props) {
 				</button>
 				<button
 					type="button"
+					aria-pressed={tab === "camera"}
+					aria-label={`시선·자세${record.cameraAnalysis ? " · 측정 결과" : " · 미사용"}`}
+					onClick={() => setTab("camera")}
+				>
+					시선·자세
+				</button>
+				<button
+					type="button"
 					aria-pressed={tab === "transcript"}
 					onClick={() => setTab("transcript")}
 				>
 					대화 기록 <span>{record.messages.length}</span>
 				</button>
 			</div>
-			{tab === "feedback" ? (
+			{tab === "camera" ? (
+				<CameraFeedback
+					analysis={record.cameraAnalysis}
+					messages={record.messages}
+				/>
+			) : tab === "feedback" ? (
 				<div className="screen-stack">
 					<div className="feedback-grid">
 						<section className="form-panel feedback-positive">

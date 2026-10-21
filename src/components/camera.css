@@ -1,0 +1,118 @@
+.camera-panel {
+	min-width: 0;
+}
+.camera-panel h3 {
+	margin-top: 0;
+}
+.camera-preview {
+	display: block;
+	width: 100%;
+	max-height: 240px;
+	aspect-ratio: 4 / 3;
+	object-fit: contain;
+	background: var(--studio);
+	border-radius: var(--radius);
+	transform: scaleX(-1);
+}
+.camera-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin-block: 12px;
+}
+.camera-settings {
+	display: grid;
+	gap: 12px;
+	margin-top: 16px;
+}
+.camera-settings label {
+	display: grid;
+	gap: 4px;
+}
+.camera-settings .camera-consent {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+}
+.camera-consent input {
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+	margin-top: 4px;
+}
+.camera-settings small {
+	color: var(--muted);
+}
+.camera-panel progress {
+	width: 100%;
+	accent-color: var(--primary);
+}
+.camera-ready {
+	color: var(--success);
+}
+.camera-coaching {
+	padding: 12px 16px;
+	background: var(--warning-soft);
+	color: var(--warning);
+	border-radius: var(--radius);
+}
+.camera-metrics {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 16px;
+	margin-block: 24px;
+}
+.camera-metrics dt {
+	color: var(--muted);
+	font-size: 14px;
+}
+.camera-metrics dd {
+	font-size: 24px;
+	margin: 4px 0 0;
+	font-variant-numeric: tabular-nums;
+}
+.camera-timeline {
+	list-style: none;
+	padding: 0;
+}
+.camera-timeline li {
+	border-left: 3px solid var(--border);
+	padding: 8px 0 16px 16px;
+	margin-bottom: 16px;
+}
+.camera-timeline h4 {
+	margin: 8px 0;
+}
+.camera-time {
+	color: var(--muted);
+	font-variant-numeric: tabular-nums;
+}
+.camera-timeline summary {
+	cursor: pointer;
+	color: var(--primary);
+	min-height: 44px;
+	padding-block: 8px;
+}
+.camera-timeline details p {
+	overflow-wrap: anywhere;
+}
+.session-guide-scroll {
+	min-height: 0;
+	overflow-y: auto;
+	padding-right: 8px;
+	margin-block: 16px;
+}
+.session-guide .session-guide-scroll .session-guide-steps {
+	overflow: visible;
+}
+@media (max-width: 480px) {
+	.camera-metrics {
+		grid-template-columns: 1fr;
+		gap: 12px;
+	}
+	.camera-metrics div {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+	}
+}

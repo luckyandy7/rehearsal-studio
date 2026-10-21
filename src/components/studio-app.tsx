@@ -10,6 +10,7 @@ import {
 } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, useState } from "react";
+import { useCameraAnalysis } from "@/hooks/use-camera-analysis";
 import { readRecords, writeRecords } from "@/lib/storage";
 import type { Mode, PracticeRecord, SessionConfig } from "@/lib/types";
 import { History } from "./history";
@@ -26,6 +27,7 @@ type View =
 	| { kind: "session"; config: SessionConfig; id: string }
 	| { kind: "report"; record: PracticeRecord };
 export function StudioApp() {
+	const camera = useCameraAnalysis();
 	const [view, setView] = useState<View>({ kind: "home" });
 	const [records, setRecords] = useState<PracticeRecord[]>([]);
 	const [notice, setNotice] = useState("");
@@ -34,6 +36,14 @@ export function StudioApp() {
 	);
 	const entryFocus = useRef<HTMLElement | null>(null);
 	const prepareSession = (config: SessionConfig) => {
+		camera.reset();
+		camera.setSettings(
+			config.camera ?? {
+				reference: "allowed",
+				feedback: "review",
+				shareSummary: false,
+			},
+		);
 		entryFocus.current =
 			document.activeElement instanceof HTMLElement
 				? document.activeElement
@@ -65,6 +75,7 @@ export function StudioApp() {
 			)
 		)
 			return;
+		camera.stop();
 		setView(next);
 	};
 	const start = (mode: Mode) => navigate({ kind: "setup", mode });
@@ -83,12 +94,17 @@ export function StudioApp() {
 			{pendingSession && (
 				<SessionGuide
 					config={pendingSession}
+					camera={camera}
 					returnFocus={entryFocus.current}
-					onCancel={() => setPendingSession(null)}
+					onCancel={() => {
+						camera.reset();
+						setPendingSession(null);
+					}}
 					onEnter={() => {
+						camera.begin();
 						setView({
 							kind: "session",
-							config: pendingSession,
+							config: { ...pendingSession, camera: camera.settings },
 							id: crypto.randomUUID(),
 						});
 						setPendingSession(null);
@@ -224,6 +240,7 @@ export function StudioApp() {
 						<Session
 							key={view.id}
 							config={view.config}
+							camera={camera}
 							onComplete={(record) => {
 								save([record, ...records].slice(0, 30));
 								setView({ kind: "report", record });

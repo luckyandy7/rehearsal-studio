@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { CameraController } from "@/hooks/use-camera-analysis";
 import { useRealtime } from "@/hooks/use-realtime";
 import { useVoiceAnalysis } from "@/hooks/use-voice-analysis";
 import { api, errorMessage } from "@/lib/api";
@@ -11,6 +12,7 @@ import {
 	reportSchema,
 	type SessionConfig,
 } from "@/lib/types";
+import { CameraSessionPanel } from "./camera-panel";
 import { EmployerMaterials, QuestionSources } from "./employer-context";
 import { Button, Waveform } from "./ui";
 import { VoiceFeedback } from "./voice-feedback";
@@ -26,11 +28,15 @@ const labels = {
 };
 export function Session({
 	config,
+	camera,
 	onComplete,
 }: {
 	config: SessionConfig;
+	camera: CameraController;
 	onComplete: (record: PracticeRecord) => void;
 }) {
+	const [cameraManual, setCameraManual] = useState(false);
+	const [userSpeaking, setUserSpeaking] = useState(false);
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [answer, setAnswer] = useState("");
 	const [busy, setBusy] = useState(false);
@@ -57,6 +63,7 @@ export function Session({
 	const voice = useRealtime({
 		config,
 		onMessage,
+		onSpeechChange: setUserSpeaking,
 		onStreamEnd: () => {
 			coach.stop();
 		},
@@ -65,6 +72,23 @@ export function Session({
 		},
 	});
 	const connected = !["idle", "error"].includes(voice.status);
+	const cameraEnabled =
+		!!camera.stream &&
+		camera.calibrated &&
+		started &&
+		!paused &&
+		!busy &&
+		(connected ? voice.status === "listening" && userSpeaking : cameraManual);
+	const answerNumber = messages.filter((m) => m.role === "user").length + 1;
+	useEffect(() => {
+		camera.setSampling({ enabled: cameraEnabled, answer: answerNumber });
+	}, [camera.setSampling, cameraEnabled, answerNumber]);
+	useEffect(
+		() => () => {
+			camera.setSampling({ enabled: false, answer: 1 });
+		},
+		[camera.setSampling],
+	);
 	sampleEnabled.current =
 		!paused && (connected ? voice.status === "listening" : !busy);
 	useEffect(() => {
@@ -107,6 +131,7 @@ export function Session({
 			setError("대화가 충분히 쌓였어요. 연습을 마치고 리포트를 확인해 주세요.");
 			return;
 		}
+		setCameraManual(false);
 		setBusy(true);
 		setError("");
 		controller.current = new AbortController();
@@ -147,6 +172,7 @@ export function Session({
 	const finish = async () => {
 		if (busy || !hasAnswer) return;
 		setFinishing(true);
+		const cameraAnalysis = camera.stop();
 		const voiceAnalysis = coach.stop() ?? coach.analysis;
 		voice.disconnect();
 		setPaused(true);
@@ -180,7 +206,14 @@ export function Session({
 					: reportSchema.parse(
 							await api
 								.post("/api/report", {
-									json: { ...config, messages: next, voiceAnalysis },
+									json: {
+										...config,
+										messages: next,
+										voiceAnalysis,
+										...(cameraAnalysis?.settings.shareSummary
+											? { cameraAnalysis }
+											: {}),
+									},
 									signal: controller.current.signal,
 								})
 								.json<unknown>(),
@@ -193,6 +226,7 @@ export function Session({
 				report,
 				elapsedSeconds: seconds,
 				...(voiceAnalysis ? { voiceAnalysis } : {}),
+				...(cameraAnalysis ? { cameraAnalysis } : {}),
 			});
 		} catch (cause) {
 			setError(await errorMessage(cause));
@@ -408,6 +442,15 @@ export function Session({
 					)}
 				</section>
 				<aside className="practice-aside">
+					{(camera.stream || camera.analysis || camera.error) && (
+						<CameraSessionPanel
+							camera={camera}
+							enabled={cameraEnabled}
+							connected={connected}
+							disabled={!started || paused || busy}
+							onToggle={() => setCameraManual((v) => !v)}
+						/>
+					)}
 					<section className="form-panel">
 						<h2>마이크 말하기 분석</h2>
 						<p className="context-hint">

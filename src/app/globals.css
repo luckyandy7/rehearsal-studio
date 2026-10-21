@@ -509,15 +509,29 @@ button:disabled {
 	}
 }
 @media (max-width: 560px) {
+	.sidebar nav {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		width: 100%;
+		margin-left: 0;
+	}
 	.sidebar {
+		flex-direction: column;
+		align-items: stretch;
 		gap: 8px;
 		padding: 12px 16px;
 	}
 	.brand {
+		align-self: flex-start;
+		white-space: nowrap;
+		flex-shrink: 0;
 		font-size: 18px;
 	}
 	.nav-button {
-		padding: 10px;
+		flex-direction: column;
+		justify-content: center;
+		white-space: nowrap;
+		padding: 8px 4px;
 		gap: 6px;
 		font-size: 12px;
 	}

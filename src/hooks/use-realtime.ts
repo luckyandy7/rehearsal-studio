@@ -15,11 +15,13 @@ export function useRealtime({
 	onMessage,
 	onStream,
 	onStreamEnd,
+	onSpeechChange,
 }: {
 	readonly config: SessionConfig;
 	readonly onMessage: (message: Message) => void;
 	readonly onStream: (stream: MediaStream) => void;
 	readonly onStreamEnd: () => void;
+	readonly onSpeechChange?: (active: boolean) => void;
 }) {
 	const [status, setStatus] = useState<VoiceStatus>("idle");
 	const [error, setError] = useState<string | null>(null);
@@ -27,6 +29,10 @@ export function useRealtime({
 	const [level, setLevel] = useState(0);
 	const connection = useRef<VoiceConnection | null>(null);
 	const callback = useRef(onMessage);
+	const speechCallback = useRef(onSpeechChange);
+	useEffect(() => {
+		speechCallback.current = onSpeechChange;
+	}, [onSpeechChange]);
 	const streamCallback = useRef(onStream);
 	const streamEndCallback = useRef(onStreamEnd);
 	useEffect(() => {
@@ -42,6 +48,7 @@ export function useRealtime({
 	const release = useCallback(() => {
 		const current = connection.current;
 		connection.current = null;
+		speechCallback.current?.(false);
 		if (!current) return;
 		streamEndCallback.current();
 		current.controller.abort();
@@ -113,7 +120,10 @@ export function useRealtime({
 			track.enabled = !current.muted;
 		});
 		setMuted(current.muted);
-		if (current.muted) interrupt();
+		if (current.muted) {
+			speechCallback.current?.(false);
+			interrupt();
+		}
 		setStatus(current.muted ? "paused" : "listening");
 	}, [interrupt]);
 
@@ -164,6 +174,12 @@ export function useRealtime({
 			if (!parsed.success) return;
 			const message = parsed.data;
 			switch (message.type) {
+				case "input_audio_buffer.speech_started":
+					speechCallback.current?.(!current.muted);
+					return;
+				case "input_audio_buffer.speech_stopped":
+					speechCallback.current?.(false);
+					return;
 				case "conversation.item.input_audio_transcription.completed":
 				case "response.output_audio_transcript.done": {
 					const key = `${message.type}:${message.item_id}`;

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { cameraAnalysisSchema, cameraSettingsSchema } from "./camera-analysis";
 import {
 	emptyInterviewContext,
 	interviewContextSchema,
@@ -10,6 +11,7 @@ export const modeSchema = z.enum(["interview", "presentation"]);
 export type Mode = z.infer<typeof modeSchema>;
 export const configSchema = z.object({
 	mode: modeSchema,
+	camera: cameraSettingsSchema.optional(),
 	interviewContext: interviewContextSchema.default(emptyInterviewContext),
 	material: z.string().min(20).max(30000),
 	role: z.string().min(1).max(160),
@@ -41,6 +43,7 @@ export const recordSchema = z.object({
 	report: reportSchema,
 	elapsedSeconds: z.number(),
 	voiceAnalysis: voiceAnalysisSchema.optional(),
+	cameraAnalysis: cameraAnalysisSchema.optional(),
 });
 export type PracticeRecord = z.infer<typeof recordSchema>;
 export const modeLabels: Record<Mode, string> = {

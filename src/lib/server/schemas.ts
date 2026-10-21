@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { cameraAnalysisSchema } from "../camera-analysis";
 import {
 	emptyInterviewContext,
 	interviewContextSchema,
@@ -12,6 +13,7 @@ export const sessionSchema = z.object({
 	role: z.string().trim().max(200),
 	difficulty: z.enum(["gentle", "normal", "pressure"]),
 	voiceAnalysis: voiceAnalysisSchema.optional(),
+	cameraAnalysis: cameraAnalysisSchema.optional(),
 	messages: z
 		.array(
 			z.object({
