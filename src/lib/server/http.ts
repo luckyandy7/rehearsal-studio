@@ -16,7 +16,10 @@ const quota = { started: Date.now(), used: 0 };
 
 export function guard(request: Request): void {
 	const origin = request.headers.get("origin");
-	if (origin && origin !== new URL(request.url).origin) {
+	const url = new URL(request.url);
+	// Next may normalize the URL hostname; Host retains the browser's destination.
+	const host = request.headers.get("host") ?? url.host;
+	if (origin && origin !== `${url.protocol}//${host}`) {
 		throw new HttpError(403, "이 앱에서 보낸 요청만 처리할 수 있습니다.");
 	}
 	if (request.headers.get("sec-fetch-site") === "cross-site") {
