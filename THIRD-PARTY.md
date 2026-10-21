@@ -10,3 +10,9 @@ src/components/ui.tsx는 다음 원본의 구현 방식을 참고해 프로젝�
 - Motion Primitives: 키 기반 화면 전환 프리미티브. [원본](https://github.com/ibelick/motion-primitives), [라이선스](docs/licenses/motion-primitives.txt).
 
 실제 다운로드 리비전과 무결성은 .design-tools/sources.lock.json에 기록되어 있다. 9개 도구의 역할은 docs/DESIGN-TOOLS.md에 명시되어 있다. 사용하지 않는 애니메이션 엔진과 Penpot은 앱 런타임에 포함하지 않는다.
+
+## MediaPipe camera analysis
+- `@mediapipe/tasks-vision` **0.10.32**, Google MediaPipe, Apache-2.0. [Repository and license](https://github.com/google-ai-edge/mediapipe/blob/master/LICENSE).
+- Face Landmarker float16 v1 and Pose Landmarker Lite float16 v1 models: official Google model distribution. Source URLs and SHA-256 hashes are pinned in `scripts/camera-assets.json`.
+- `pnpm camera:prepare` copies the installed WASM runtime and downloads/verifies the model files into ignored `public/camera-assets/`. Dev/build runs it automatically. The browser fetches these assets from this app's origin; it sends no camera frames to Google or OpenAI.
+- Implementation uses the Tasks API; no third-party UI component was copied for the camera feature. [Face guide](https://developers.google.com/edge/mediapipe/solutions/vision/face_landmarker/web_js), [Pose guide](https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker/web_js).
