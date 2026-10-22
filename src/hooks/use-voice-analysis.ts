@@ -13,6 +13,7 @@ type Capture = {
 };
 export function useVoiceAnalysis(shouldSample: () => boolean) {
 	const current = useRef<Capture | null>(null);
+	const segment = useRef(new VoiceMeter());
 	const starting = useRef(false);
 	const generation = useRef(0);
 	const sampling = useRef(shouldSample);
@@ -84,6 +85,7 @@ export function useVoiceAnalysis(shouldSample: () => boolean) {
 			context.createMediaStreamSource(input).connect(analyser);
 			const samples = new Float32Array(analyser.fftSize);
 			const meter = new VoiceMeter();
+			segment.current = new VoiceMeter();
 			const sampleRate = context.sampleRate;
 			let last = performance.now();
 			let shown = 0;
@@ -99,6 +101,7 @@ export function useVoiceAnalysis(shouldSample: () => boolean) {
 				if (sampling.current()) {
 					analyser.getFloatTimeDomainData(samples);
 					meter.add(samples, sampleRate, delta);
+					segment.current.add(samples, sampleRate, delta);
 				}
 				shown += delta;
 				if (shown >= 1) {
@@ -141,6 +144,12 @@ export function useVoiceAnalysis(shouldSample: () => boolean) {
 	}, []);
 	const addTranscript = useCallback((text: string) => {
 		current.current?.meter.addTranscript(text);
+		segment.current.addTranscript(text);
+	}, []);
+	const takeAnswer = useCallback(() => {
+		const result = segment.current.snapshot();
+		segment.current = new VoiceMeter();
+		return result.analysedSeconds > 0 ? result : undefined;
 	}, []);
 	useEffect(
 		() => () => {
@@ -166,5 +175,6 @@ export function useVoiceAnalysis(shouldSample: () => boolean) {
 		analysis,
 		error,
 		addTranscript,
+		takeAnswer,
 	};
 }

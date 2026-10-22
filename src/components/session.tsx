@@ -6,11 +6,13 @@ import { useVoiceAnalysis } from "@/hooks/use-voice-analysis";
 import { api, errorMessage } from "@/lib/api";
 import { demoQuestion } from "@/lib/demo-question";
 import { questionSchema } from "@/lib/interview-context";
+import { hints, mergeCamera } from "@/lib/learning";
 import {
 	type Message,
 	type PracticeRecord,
 	reportSchema,
 	type SessionConfig,
+	type SessionDraft,
 } from "@/lib/types";
 import { CameraSessionPanel } from "./camera-panel";
 import { EmployerMaterials, QuestionSources } from "./employer-context";
@@ -30,15 +32,27 @@ export function Session({
 	config,
 	camera,
 	onComplete,
+	initialDraft,
+	onDraft,
 }: {
 	config: SessionConfig;
 	camera: CameraController;
 	onComplete: (record: PracticeRecord) => void;
+	initialDraft?: SessionDraft | undefined;
+	onDraft: (draft: SessionDraft) => void;
 }) {
 	const [cameraManual, setCameraManual] = useState(false);
 	const [userSpeaking, setUserSpeaking] = useState(false);
-	const [messages, setMessages] = useState<Message[]>([]);
-	const [answer, setAnswer] = useState("");
+	const [messages, setMessages] = useState<Message[]>(
+		initialDraft?.messages ??
+			(config.retry
+				? [{ role: "assistant", content: config.retry.question }]
+				: []),
+	);
+	const [answer, setAnswer] = useState(initialDraft?.answer ?? "");
+	const [hintsUsed, setHintsUsed] = useState(initialDraft?.hintsUsed ?? 0);
+	const hintRef = useRef(hintsUsed);
+	hintRef.current = hintsUsed;
 	const [busy, setBusy] = useState(false);
 	const [finishing, setFinishing] = useState(false);
 	const heading = useRef<HTMLHeadingElement>(null);
@@ -46,9 +60,15 @@ export function Session({
 		heading.current?.focus();
 	}, []);
 	const [error, setError] = useState("");
-	const [started, setStarted] = useState(false);
-	const [paused, setPaused] = useState(false);
-	const [seconds, setSeconds] = useState(0);
+	const [started, setStarted] = useState(!!initialDraft || !!config.retry);
+	const [paused, setPaused] = useState(!!initialDraft);
+	const [seconds, setSeconds] = useState(initialDraft?.seconds ?? 0);
+	const secondsRef = useRef(seconds);
+	secondsRef.current = seconds;
+	const draftId = useRef(initialDraft?.id ?? crypto.randomUUID());
+	const draftCallback = useRef(onDraft);
+	draftCallback.current = onDraft;
+	const completed = useRef(false);
 	const controller = useRef<AbortController | null>(null);
 	const end = useRef<HTMLDivElement>(null);
 	const sampleEnabled = useRef(true);
@@ -56,12 +76,21 @@ export function Session({
 	const onMessage = useCallback(
 		(message: Message) => {
 			if (message.role === "user") coach.addTranscript(message.content);
-			setMessages((previous) => [...previous, message]);
+			const enriched: Message = {
+				...message,
+				atSeconds: secondsRef.current,
+				...(message.role === "user"
+					? { hintsUsed: hintRef.current, voiceAnalysis: coach.takeAnswer() }
+					: {}),
+			};
+			setMessages((previous) => [...previous, enriched]);
+			if (message.role === "user") setHintsUsed(0);
 		},
-		[coach.addTranscript],
+		[coach.addTranscript, coach.takeAnswer],
 	);
 	const voice = useRealtime({
 		config,
+		messages,
 		onMessage,
 		onSpeechChange: setUserSpeaking,
 		onStreamEnd: () => {
@@ -91,6 +120,42 @@ export function Session({
 	);
 	sampleEnabled.current =
 		!paused && (connected ? voice.status === "listening" : !busy);
+	const snapshot: SessionDraft = {
+		version: 1,
+		id: draftId.current,
+		updatedAt: new Date().toISOString(),
+		config,
+		messages,
+		answer,
+		seconds,
+		hintsUsed,
+		voiceAnalysis: coach.analysis ?? initialDraft?.voiceAnalysis,
+		cameraAnalysis: mergeCamera(
+			initialDraft?.cameraAnalysis,
+			camera.analysis,
+			initialDraft?.seconds ?? 0,
+			camera.settings,
+		),
+	};
+	const snapshotRef = useRef(snapshot);
+	snapshotRef.current = snapshot;
+	useEffect(() => {
+		const save = () => {
+			if (!completed.current) draftCallback.current(snapshotRef.current);
+		};
+		const timer = setTimeout(save, 200);
+		window.addEventListener("pagehide", save);
+		return () => {
+			clearTimeout(timer);
+			window.removeEventListener("pagehide", save);
+		};
+	}, [messages, answer, seconds, hintsUsed, coach.analysis, camera.analysis]);
+	useEffect(
+		() => () => {
+			if (!completed.current) draftCallback.current(snapshotRef.current);
+		},
+		[],
+	);
 	useEffect(() => {
 		if (messages.length >= 76 && connected) {
 			voice.disconnect();
@@ -110,28 +175,32 @@ export function Session({
 		const timer = setInterval(() => setSeconds((s) => s + 1), 1000);
 		return () => clearInterval(timer);
 	}, [started, paused, busy]);
-	useEffect(() => {
-		if (!connected || config.mode !== "presentation" || paused) return;
-		const timer = setInterval(
-			voice.askQuestion,
-			config.difficulty === "pressure"
-				? 25000
-				: config.difficulty === "gentle"
-					? 75000
-					: 45000,
-		);
-		return () => clearInterval(timer);
-	}, [connected, config.mode, config.difficulty, paused, voice.askQuestion]);
 	const turn = async (action: "start" | "followup" | "interrupt") => {
 		if (busy) return;
+		if (config.retry) {
+			await finish();
+			return;
+		}
 		const next: Message[] = answer.trim()
-			? [...messages, { role: "user", content: answer.trim() }]
+			? [
+					...messages,
+					{
+						role: "user",
+						content: answer.trim(),
+						hintsUsed,
+						atSeconds: seconds,
+						voiceAnalysis: coach.takeAnswer(),
+					},
+				]
 			: messages;
 		if (next.length >= 78) {
 			setError("대화가 충분히 쌓였어요. 연습을 마치고 리포트를 확인해 주세요.");
 			return;
 		}
 		setCameraManual(false);
+		setMessages(next);
+		setAnswer("");
+		setHintsUsed(0);
 		setBusy(true);
 		setError("");
 		controller.current = new AbortController();
@@ -172,17 +241,33 @@ export function Session({
 	const finish = async () => {
 		if (busy || !hasAnswer) return;
 		setFinishing(true);
-		const cameraAnalysis = camera.stop();
-		const voiceAnalysis = coach.stop() ?? coach.analysis;
+		const cameraAnalysis = mergeCamera(
+			initialDraft?.cameraAnalysis,
+			camera.stop(),
+			initialDraft?.seconds ?? 0,
+			camera.settings,
+		);
+		const voiceAnalysis =
+			coach.stop() ?? coach.analysis ?? initialDraft?.voiceAnalysis;
 		voice.disconnect();
 		setPaused(true);
 		setBusy(true);
 		setError("");
 		const next: Message[] = answer.trim()
-			? [...messages, { role: "user", content: answer.trim() }]
+			? [
+					...messages,
+					{
+						role: "user",
+						content: answer.trim(),
+						hintsUsed,
+						atSeconds: seconds,
+						voiceAnalysis: coach.takeAnswer(),
+					},
+				]
 			: messages;
 		setMessages(next);
 		setAnswer("");
+		setHintsUsed(0);
 		controller.current = new AbortController();
 		try {
 			const report =
@@ -218,6 +303,7 @@ export function Session({
 								})
 								.json<unknown>(),
 						);
+			completed.current = true;
 			onComplete({
 				id: crypto.randomUUID(),
 				createdAt: new Date().toISOString(),
@@ -288,12 +374,47 @@ export function Session({
 						{error || voice.error} 대화 기록은 유지됩니다. 다시 시도해 주세요.
 					</p>
 				)}
+				{error && !busy && messages.at(-1)?.role === "user" && !paused && (
+					<Button
+						variant="secondary"
+						onClick={() =>
+							void turn(
+								config.mode === "presentation" ? "interrupt" : "followup",
+							)
+						}
+					>
+						질문 생성 다시 시도
+					</Button>
+				)}
 			</section>
 			{config.provider === "demo" && (
 				<p className="demo-banner">
 					데모 체험 · 준비된 질문 틀에 입력 자료를 넣습니다. 실제 AI·음성 연결은
 					사용하지 않습니다.
 				</p>
+			)}
+			{initialDraft && (
+				<p className="demo-banner">
+					임시 기록을 복원했어요. 계속하기를 누르거나 음성을 다시 연결하세요.
+					완료되지 않은 음성 자막은 복원되지 않습니다.
+				</p>
+			)}
+			{config.retry && (
+				<section className="form-panel">
+					<h2>
+						{config.retry.previousAnswer
+							? "같은 질문, 다시 답해보기"
+							: "아직 설명하지 못한 역량 연습"}
+					</h2>
+					<p>{config.retry.question}</p>
+					<p>확인할 기준: {config.retry.criteria.join(" · ")}</p>
+					<p>
+						답변을 마치면 리포트에서{" "}
+						{config.retry.previousAnswer
+							? "이전 답변과 비교합니다."
+							: "근거를 확인합니다."}
+					</p>
+				</section>
 			)}
 			<div className="practice-grid">
 				<section className="conversation-panel">
@@ -322,7 +443,7 @@ export function Session({
 							{config.provider === "openai" && (
 								<Button
 									variant="secondary"
-									disabled={busy || (messages.length > 0 && !connected)}
+									disabled={busy}
 									onClick={() => {
 										if (connected) {
 											coach.stop();
@@ -331,7 +452,22 @@ export function Session({
 											coach.stop();
 											setStarted(true);
 											setPaused(false);
-											void voice.connect();
+											const next: Message[] = answer.trim()
+												? [
+														...messages,
+														{
+															role: "user",
+															content: answer.trim(),
+															hintsUsed,
+															atSeconds: seconds,
+															voiceAnalysis: coach.takeAnswer(),
+														},
+													]
+												: messages;
+											setMessages(next);
+											setAnswer("");
+											setHintsUsed(0);
+											void voice.connect(next);
 										}
 									}}
 								>
@@ -353,6 +489,17 @@ export function Session({
 							{connected && (
 								<Button variant="secondary" onClick={voice.interrupt}>
 									AI 말 멈추기
+								</Button>
+							)}
+							{voice.status === "error" && (
+								<Button
+									variant="secondary"
+									onClick={() => {
+										voice.disconnect();
+										setPaused(false);
+									}}
+								>
+									텍스트로 계속하기
 								</Button>
 							)}
 						</div>
@@ -383,6 +530,15 @@ export function Session({
 								</strong>
 								<p>{message.content}</p>
 								<QuestionSources sources={message.sources} />
+								{!!message.hintsUsed && (
+									<small>힌트 {message.hintsUsed}단계 사용</small>
+								)}
+								{message.trigger && (
+									<p className="context-hint">
+										반박 근거: “{message.trigger.quote}” ·{" "}
+										{message.trigger.reason}
+									</p>
+								)}
 							</article>
 						))}
 						<div ref={end} />
@@ -427,16 +583,18 @@ export function Session({
 									}
 								>
 									{messages.length
-										? config.mode === "presentation"
-											? "발표 제출하고 질문 받기"
-											: "답변 제출"
+										? config.retry
+											? "답변 제출 · 결과 확인"
+											: config.mode === "presentation"
+												? "발표 제출하고 질문 받기"
+												: "답변 제출"
 										: "첫 질문 받기"}
 								</Button>
 							</div>
 						</div>
 					)}
-					{connected && config.mode === "presentation" && (
-						<Button disabled={paused} onClick={voice.askQuestion}>
+					{connected && config.mode === "presentation" && !config.retry && (
+						<Button disabled={paused} onClick={() => voice.askQuestion()}>
 							지금 반박 질문 받기
 						</Button>
 					)}
@@ -492,21 +650,44 @@ export function Session({
 					</section>
 					<section className="form-panel">
 						<h2>연습 안내</h2>
+						{config.practiceStyle !== "simulation" &&
+							messages.some((m) => m.role === "assistant") && (
+								<div className="hint-panel">
+									<h3>답변이 막혔나요?</h3>
+									<p>힌트 사용 단계는 답변과 함께 기록됩니다.</p>
+									<Button
+										variant="secondary"
+										disabled={busy || paused || hintsUsed >= hints.length}
+										onClick={() => setHintsUsed((n) => Math.min(3, n + 1))}
+									>
+										{hintsUsed >= 3
+											? "힌트를 모두 확인했어요"
+											: `힌트 ${hintsUsed + 1}단계 보기`}
+									</Button>
+									<ol aria-live="polite">
+										{hints.slice(0, hintsUsed).map((hint) => (
+											<li key={hint}>{hint}</li>
+										))}
+									</ol>
+								</div>
+							)}
 						<p>실제 경험과 확인 가능한 근거를 중심으로 답해 보세요.</p>
 						<p>
-							음성 연습은 새 세션의 첫 단계에서 시작합니다. 음성을 종료하면
-							자막을 바탕으로 텍스트 연습을 이어갈 수 있어요.
+							음성을 다시 연결하면 확정된 대화를 전달해 이어갑니다. 텍스트로도
+							계속할 수 있어요. 대화와 입력 중인 글은 이 브라우저에 임시
+							저장됩니다.
 						</p>
 						{config.mode === "presentation" && (
 							<p>
-								음성 발표 중에는{" "}
+								음성 발표 중에는 확정 자막에서 성능·수요·안전·차별성 주장을
+								찾아, 발화가 멈춘 뒤 질문합니다. 질문 간 최소 간격은{" "}
 								{config.difficulty === "pressure"
 									? "25"
 									: config.difficulty === "gentle"
 										? "75"
 										: "45"}
-								초마다 질문을 시도합니다. AI가 말하는 동안에는 중복 질문하지
-								않습니다.
+								초이며 같은 주장은 반복 질문하지 않습니다. 모든 주장을 감지하는
+								것은 아니며 수동 질문도 가능합니다.
 							</p>
 						)}
 					</section>

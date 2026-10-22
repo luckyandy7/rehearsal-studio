@@ -60,6 +60,13 @@ const base = process.env.TEST_BASE_URL || "http://127.0.0.1:3001";
 				.getByRole("dialog")
 				.screenshot({ path: "docs/images/session-guide.png" });
 		await page.keyboard.press("Escape");
+		await page.waitForFunction(
+			() =>
+				document.activeElement?.tagName === "BUTTON" &&
+				document.activeElement?.textContent?.includes("데모 연습 시작"),
+			null,
+			{ timeout: 2000 },
+		);
 		assert.ok(
 			await page
 				.getByRole("button", { name: "데모 연습 시작" })

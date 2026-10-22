@@ -11,8 +11,19 @@ import {
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, useState } from "react";
 import { useCameraAnalysis } from "@/hooks/use-camera-analysis";
-import { readRecords, writeRecords } from "@/lib/storage";
-import type { Mode, PracticeRecord, SessionConfig } from "@/lib/types";
+import {
+	clearDraft,
+	readDraft,
+	readRecords,
+	writeDraft,
+	writeRecords,
+} from "@/lib/storage";
+import type {
+	Mode,
+	PracticeRecord,
+	SessionConfig,
+	SessionDraft,
+} from "@/lib/types";
 import { History } from "./history";
 import { Home } from "./home";
 import { ReportView } from "./report";
@@ -24,18 +35,31 @@ import { Button } from "./ui";
 type View =
 	| { kind: "home" | "history" }
 	| { kind: "setup"; mode: Mode }
-	| { kind: "session"; config: SessionConfig; id: string }
+	| {
+			kind: "session";
+			config: SessionConfig;
+			id: string;
+			draft?: SessionDraft | undefined;
+	  }
 	| { kind: "report"; record: PracticeRecord };
 export function StudioApp() {
 	const camera = useCameraAnalysis();
 	const [view, setView] = useState<View>({ kind: "home" });
 	const [records, setRecords] = useState<PracticeRecord[]>([]);
 	const [notice, setNotice] = useState("");
+	const [draft, setDraft] = useState<SessionDraft | null>(null);
+	const resumeDraft = useRef<SessionDraft | null>(null);
 	const [pendingSession, setPendingSession] = useState<SessionConfig | null>(
 		null,
 	);
 	const entryFocus = useRef<HTMLElement | null>(null);
 	const prepareSession = (config: SessionConfig) => {
+		if (
+			draft &&
+			!window.confirm("진행 중인 연습의 임시 기록을 새 연습으로 바꿀까요?")
+		)
+			return;
+		resumeDraft.current = null;
 		camera.reset();
 		camera.setSettings(
 			config.camera ?? {
@@ -53,6 +77,7 @@ export function StudioApp() {
 	useEffect(() => {
 		try {
 			setRecords(readRecords());
+			setDraft(readDraft());
 		} catch {
 			setNotice(
 				"브라우저 저장소를 사용할 수 없습니다. 리포트를 파일로 내려받아 주세요.",
@@ -71,7 +96,7 @@ export function StudioApp() {
 		if (
 			view.kind === "session" &&
 			!window.confirm(
-				"연습을 나가면 아직 저장하지 않은 대화가 사라집니다. 나갈까요?",
+				"연습을 나갈까요? 저장된 임시 기록은 홈에서 이어갈 수 있습니다.",
 			)
 		)
 			return;
@@ -106,6 +131,7 @@ export function StudioApp() {
 							kind: "session",
 							config: { ...pendingSession, camera: camera.settings },
 							id: crypto.randomUUID(),
+							draft: resumeDraft.current ?? undefined,
 						});
 						setPendingSession(null);
 					}}
@@ -220,6 +246,52 @@ export function StudioApp() {
 							{notice}
 						</p>
 					)}
+					{draft && view.kind !== "session" && (
+						<section className="form-panel" aria-label="중단된 연습">
+							<h2>이어서 연습할까요?</h2>
+							<p>
+								{draft.config.role} · 답변{" "}
+								{draft.messages.filter((m) => m.role === "user").length}개 ·{" "}
+								{new Date(draft.updatedAt).toLocaleString("ko-KR")}
+							</p>
+							<p>
+								확정 자막과 입력 중인 글을 복원합니다. 음성·카메라는 다시
+								연결해야 하며, 이전 카메라 관찰은 보관됩니다.
+							</p>
+							<div className="session-controls">
+								<Button
+									onClick={() => {
+										camera.reset();
+										camera.setSettings(
+											draft.config.camera ?? {
+												reference: "allowed",
+												feedback: "review",
+												shareSummary: false,
+											},
+										);
+										resumeDraft.current = draft;
+										setPendingSession(draft.config);
+									}}
+								>
+									중단된 연습 이어가기
+								</Button>
+								<Button
+									variant="secondary"
+									onClick={() => {
+										if (!window.confirm("임시 기록을 삭제할까요?")) return;
+										try {
+											clearDraft();
+											setDraft(null);
+										} catch {
+											setNotice("임시 기록을 삭제하지 못했습니다.");
+										}
+									}}
+								>
+									임시 기록 삭제
+								</Button>
+							</div>
+						</section>
+					)}
 					{view.kind === "home" && (
 						<Home
 							records={records}
@@ -241,7 +313,24 @@ export function StudioApp() {
 							key={view.id}
 							config={view.config}
 							camera={camera}
+							initialDraft={view.draft}
+							onDraft={(next) => {
+								try {
+									writeDraft(next);
+									setDraft(next);
+								} catch {
+									setNotice(
+										"임시 저장이 실패했습니다. 이 페이지를 닫기 전에 리포트를 내려받아 주세요.",
+									);
+								}
+							}}
 							onComplete={(record) => {
+								try {
+									clearDraft();
+									setDraft(null);
+								} catch {
+									setNotice("완료했지만 임시 기록을 삭제하지 못했습니다.");
+								}
 								save([record, ...records].slice(0, 30));
 								setView({ kind: "report", record });
 							}}

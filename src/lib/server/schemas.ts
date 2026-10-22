@@ -4,10 +4,12 @@ import {
 	emptyInterviewContext,
 	interviewContextSchema,
 } from "../interview-context";
+import { learningFields, retrySchema } from "../learning";
 import { voiceAnalysisSchema } from "../voice-analysis";
 
 export const sessionSchema = z.object({
 	mode: z.enum(["interview", "presentation"]),
+	retry: retrySchema.optional(),
 	interviewContext: interviewContextSchema.default(emptyInterviewContext),
 	material: z.string().trim().max(30_000),
 	role: z.string().trim().max(200),
@@ -19,6 +21,7 @@ export const sessionSchema = z.object({
 			z.object({
 				role: z.enum(["user", "assistant"]),
 				content: z.string().trim().min(1).max(8_000),
+				hintsUsed: z.number().int().min(0).max(3).optional(),
 			}),
 		)
 		.max(80),
@@ -32,6 +35,7 @@ export const reportSchema = z.object({
 	improvements: z.array(z.string()),
 	exercises: z.array(z.string()),
 	evidence: z.array(z.object({ quote: z.string(), feedback: z.string() })),
+	...learningFields,
 });
 export type SessionInput = z.infer<typeof sessionSchema>;
 

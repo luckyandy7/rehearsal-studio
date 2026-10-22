@@ -615,6 +615,7 @@
 }
 .report-tabs {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 8px;
 	border-bottom: 1px solid var(--border);
 }
@@ -841,8 +842,8 @@
 		gap: 16px;
 	}
 	.report-tabs > button {
-		flex: 1;
-		white-space: nowrap;
+		flex: 1 1 40%;
+		white-space: normal;
 		padding: 12px 4px;
 	}
 	.privacy-note {

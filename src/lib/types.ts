@@ -5,12 +5,15 @@ import {
 	interviewContextSchema,
 	questionSourceSchema,
 } from "./interview-context";
+import { learningFields, retrySchema } from "./learning";
 import { voiceAnalysisSchema } from "./voice-analysis";
 
 export const modeSchema = z.enum(["interview", "presentation"]);
 export type Mode = z.infer<typeof modeSchema>;
 export const configSchema = z.object({
 	mode: modeSchema,
+	practiceStyle: z.enum(["coaching", "simulation"]).default("coaching"),
+	retry: retrySchema.optional(),
 	camera: cameraSettingsSchema.optional(),
 	interviewContext: interviewContextSchema.default(emptyInterviewContext),
 	material: z.string().min(20).max(30000),
@@ -25,6 +28,12 @@ export const messageSchema = z.object({
 	role: z.enum(["user", "assistant"]),
 	content: z.string().max(12000),
 	sources: z.array(questionSourceSchema).max(3).optional(),
+	hintsUsed: z.number().int().min(0).max(3).optional(),
+	atSeconds: z.number().nonnegative().optional(),
+	voiceAnalysis: voiceAnalysisSchema.optional(),
+	trigger: z
+		.object({ quote: z.string().max(500), reason: z.string().max(200) })
+		.optional(),
 });
 export type Message = z.infer<typeof messageSchema>;
 export const reportSchema = z.object({
@@ -33,6 +42,9 @@ export const reportSchema = z.object({
 	improvements: z.array(z.string()),
 	exercises: z.array(z.string()),
 	evidence: z.array(z.object({ quote: z.string(), feedback: z.string() })),
+	coverage: learningFields.coverage.optional(),
+	answerFeedback: learningFields.answerFeedback.optional(),
+	comparison: learningFields.comparison.optional(),
 });
 export type Report = z.infer<typeof reportSchema>;
 export const recordSchema = z.object({
@@ -46,6 +58,19 @@ export const recordSchema = z.object({
 	cameraAnalysis: cameraAnalysisSchema.optional(),
 });
 export type PracticeRecord = z.infer<typeof recordSchema>;
+export const draftSchema = z.object({
+	version: z.literal(1),
+	id: z.string(),
+	updatedAt: z.string(),
+	config: configSchema,
+	messages: z.array(messageSchema).max(80),
+	answer: z.string().max(8000),
+	seconds: z.number().nonnegative(),
+	hintsUsed: z.number().int().min(0).max(3),
+	voiceAnalysis: voiceAnalysisSchema.optional(),
+	cameraAnalysis: cameraAnalysisSchema.optional(),
+});
+export type SessionDraft = z.infer<typeof draftSchema>;
 export const modeLabels: Record<Mode, string> = {
 	interview: "면접 연습",
 	presentation: "발표 연습",

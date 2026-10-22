@@ -46,6 +46,8 @@ export function Setup({ mode, onBack, onStart }: Props) {
 	const [difficulty, setDifficulty] =
 		useState<SessionConfig["difficulty"]>("normal");
 	const [durationMinutes, setDuration] = useState(5);
+	const [practiceStyle, setPracticeStyle] =
+		useState<SessionConfig["practiceStyle"]>("coaching");
 	const [provider, setProvider] = useState<SessionConfig["provider"]>("openai");
 	const [fileName, setFileName] = useState("");
 	const [configured, setConfigured] = useState<boolean | null>(null);
@@ -106,6 +108,7 @@ export function Setup({ mode, onBack, onStart }: Props) {
 			role: role.trim(),
 			difficulty,
 			durationMinutes,
+			practiceStyle,
 			provider,
 			fileName,
 			interviewContext:
@@ -251,6 +254,23 @@ export function Setup({ mode, onBack, onStart }: Props) {
 							value={role}
 							onChange={(event) => setRole(event.target.value)}
 						/>
+						<label className="field-label" htmlFor="practice-style">
+							연습 방식
+						</label>
+						<select
+							id="practice-style"
+							value={practiceStyle}
+							onChange={(event) =>
+								setPracticeStyle(
+									event.target.value === "simulation"
+										? "simulation"
+										: "coaching",
+								)
+							}
+						>
+							<option value="coaching">코칭 · 막히면 단계별 힌트</option>
+							<option value="simulation">실전 · 힌트 없이 답변</option>
+						</select>
 						<label className="field-label" htmlFor="difficulty">
 							질문 강도
 						</label>

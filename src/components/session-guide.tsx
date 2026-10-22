@@ -52,11 +52,19 @@ export function SessionGuide({
 						<CameraPreparation camera={camera} />
 						<ol className="session-guide-steps">
 							<li>
-								<strong>{demo ? "첫 질문 받기" : "실시간 음성 연결"}</strong>
+								<strong>
+									{config.retry
+										? "선택한 질문에 다시 답하기"
+										: demo
+											? "첫 질문 받기"
+											: "실시간 음성 연결"}
+								</strong>
 								<p>
-									{demo
-										? "입장 후 첫 질문 받기를 눌러 텍스트 체험을 시작해요."
-										: "입장 후 실시간 음성 연결을 누르고 마이크를 허용해 주세요. 글로 연습하려면 첫 질문 받기를 선택해요."}
+									{config.retry
+										? "선택한 질문이 입장과 함께 표시돼요. 답변 후 결과를 확인하세요. 임시 기록에서 돌아왔다면 계속하기를 눌러 주세요."
+										: demo
+											? "입장 후 첫 질문 받기를 눌러 텍스트 체험을 시작해요."
+											: "입장 후 실시간 음성 연결을 누르고 마이크를 허용해 주세요. 글로 연습하려면 첫 질문 받기를 선택해요."}
 								</p>
 							</li>
 							<li>
@@ -82,7 +90,8 @@ export function SessionGuide({
 								<strong>리포트 확인하고 저장하기</strong>
 								<p>
 									완성된 리포트가 바로 열려요. 리포트 저장으로 파일을 내려받거나
-									연습 기록에서 다시 확인하세요.
+									연습 기록에서 다시 확인하세요. 질문별 복습 · 재도전에서 답변을
+									골라 다시 연습할 수 있어요.
 								</p>
 							</li>
 						</ol>

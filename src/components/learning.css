@@ -1,0 +1,49 @@
+.learning-item {
+	padding-block: var(--space-5);
+	border-bottom: 1px solid var(--border);
+	overflow-wrap: anywhere;
+}
+.learning-item:last-child {
+	border-bottom: 0;
+}
+.learning-item summary {
+	cursor: pointer;
+	font-weight: 650;
+	padding-block: var(--space-2);
+}
+.learning-item summary:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 4px;
+}
+.learning-item blockquote {
+	margin: var(--space-3) 0;
+	padding: var(--space-3);
+	background: var(--background);
+	border-radius: var(--radius);
+}
+.comparison-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--space-5);
+}
+.comparison-grid article {
+	background: var(--background);
+	padding: var(--space-4);
+	border-radius: var(--radius);
+	overflow-wrap: anywhere;
+}
+.review-answer,
+.comparison-grid p {
+	white-space: pre-wrap;
+}
+.hint-panel {
+	margin-bottom: var(--space-5);
+}
+.hint-panel li {
+	margin-block: var(--space-3);
+}
+@media (max-width: 640px) {
+	.comparison-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

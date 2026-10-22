@@ -17,6 +17,7 @@ import {
 } from "@/lib/types";
 import { CameraFeedback } from "./camera-feedback";
 import { EmployerMaterials, QuestionSources } from "./employer-context";
+import { LearningReview } from "./learning-review";
 import { VoiceFeedback } from "./voice-feedback";
 import "./screens.css";
 
@@ -26,9 +27,9 @@ type Props = {
 	readonly onRetry: (config: SessionConfig) => void;
 };
 export function ReportView({ record, onBack, onRetry }: Props) {
-	const [tab, setTab] = useState<"feedback" | "transcript" | "camera">(
-		"feedback",
-	);
+	const [tab, setTab] = useState<
+		"feedback" | "transcript" | "camera" | "learning"
+	>(record.config.retry ? "learning" : "feedback");
 	const answers = record.messages.filter(
 		(message) => message.role === "user",
 	).length;
@@ -102,6 +103,13 @@ export function ReportView({ record, onBack, onRetry }: Props) {
 			<div className="report-tabs">
 				<button
 					type="button"
+					aria-pressed={tab === "learning"}
+					onClick={() => setTab("learning")}
+				>
+					질문별 복습 · 재도전
+				</button>
+				<button
+					type="button"
 					aria-pressed={tab === "feedback"}
 					onClick={() => setTab("feedback")}
 				>
@@ -123,7 +131,9 @@ export function ReportView({ record, onBack, onRetry }: Props) {
 					대화 기록 <span>{record.messages.length}</span>
 				</button>
 			</div>
-			{tab === "camera" ? (
+			{tab === "learning" ? (
+				<LearningReview record={record} onRetry={onRetry} />
+			) : tab === "camera" ? (
 				<CameraFeedback
 					analysis={record.cameraAnalysis}
 					messages={record.messages}
