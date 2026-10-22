@@ -41,6 +41,9 @@ export function CameraPreparation({
 			<h3>
 				시선·자세 코칭 <span className="tag">선택</span>
 			</h3>
+			<p className="camera-optional-note">
+				카메라를 켤 때만 사용하는 설정이에요. 필요 없다면 그대로 입장해도 돼요.
+			</p>
 			<p>
 				영상은 이 기기에서 분석하고 저장·전송하지 않아요. 부정행위·성격·채용
 				적합성을 판단하지 않습니다.
@@ -100,53 +103,96 @@ export function CameraPreparation({
 			)}
 			{!inSession && (
 				<div className="camera-settings">
-					<label>
-						자료 참조 설정
-						<select
-							value={camera.settings.reference}
-							onChange={(e) =>
-								camera.setSettings({
-									...camera.settings,
-									reference: e.target.value === "closed" ? "closed" : "allowed",
-								})
-							}
-						>
-							<option value="allowed">자료 참조 허용</option>
-							<option value="closed">자료 없이 연습</option>
-						</select>
-					</label>
-					<label>
-						피드백 시점
-						<select
-							value={camera.settings.feedback}
-							onChange={(e) =>
-								camera.setSettings({
-									...camera.settings,
-									feedback: e.target.value === "live" ? "live" : "review",
-								})
-							}
-						>
-							<option value="review">실전 모드 · 종료 후 확인</option>
-							<option value="live">코칭 모드 · 연습 중 안내</option>
-						</select>
-					</label>
-					<label className="camera-consent">
-						<input
-							type="checkbox"
-							checked={camera.settings.shareSummary}
-							onChange={(e) =>
-								camera.setSettings({
-									...camera.settings,
-									shareSummary: e.target.checked,
-								})
-							}
-						/>
-						측정 요약을 OpenAI 리포트에도 사용하기
-					</label>
-					<small>
-						선택하지 않으면 카메라 결과는 이 브라우저의 리포트에만 표시해요.
-						데모에서는 선택해도 OpenAI에 보내지 않아요.
-					</small>
+					<p className="camera-settings-intro">
+						각 항목에서 하나를 선택해 주세요. 이미 선택된 기본값을 사용해도
+						괜찮아요.
+					</p>
+					{(
+						[
+							{
+								key: "reference",
+								title: "자료 참조 설정",
+								options: [
+									{
+										value: "allowed",
+										title: "자료 참조 허용",
+										description: "자료를 보며 연습하는 상황을 반영해요.",
+									},
+									{
+										value: "closed",
+										title: "자료 없이 연습",
+										description: "자료를 보지 않는 상황으로 시선을 돌아봐요.",
+									},
+								],
+							},
+							{
+								key: "feedback",
+								title: "피드백 시점",
+								options: [
+									{
+										value: "review",
+										title: "종료 후 확인",
+										description: "연습에 집중하고 리포트에서 확인해요.",
+									},
+									{
+										value: "live",
+										title: "연습 중 안내",
+										description: "시선·자세에 대한 안내를 바로 받아요.",
+									},
+								],
+							},
+						] as const
+					).map((group) => (
+						<fieldset className="camera-choice-group" key={group.key}>
+							<legend>{group.title}</legend>
+							<div className="camera-choice-grid">
+								{group.options.map((option) => (
+									<label className="camera-choice" key={option.value}>
+										<input
+											type="radio"
+											name={`camera-${group.key}`}
+											value={option.value}
+											checked={camera.settings[group.key] === option.value}
+											onChange={() =>
+												camera.setSettings({
+													...camera.settings,
+													[group.key]: option.value,
+												})
+											}
+										/>
+										<span className="camera-choice-copy">
+											<strong>{option.title}</strong>
+											<small>{option.description}</small>
+											<span className="camera-choice-state" aria-hidden="true">
+												{camera.settings[group.key] === option.value
+													? "선택됨"
+													: "선택하기"}
+											</span>
+										</span>
+									</label>
+								))}
+							</div>
+						</fieldset>
+					))}
+					<div className="camera-sharing">
+						<label className="camera-consent">
+							<input
+								type="checkbox"
+								checked={camera.settings.shareSummary}
+								onChange={(e) =>
+									camera.setSettings({
+										...camera.settings,
+										shareSummary: e.target.checked,
+									})
+								}
+							/>
+							측정 요약을 OpenAI 리포트에도 사용하기
+						</label>
+						<small>
+							선택하지 않으면 카메라 결과는 이 브라우저의 리포트에만 표시해요.
+							데모에서는 선택해도 OpenAI에 보내지 않아요.
+						</small>
+					</div>
 				</div>
 			)}
 		</section>

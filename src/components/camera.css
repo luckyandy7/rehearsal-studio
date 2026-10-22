@@ -22,8 +22,94 @@
 }
 .camera-settings {
 	display: grid;
-	gap: 12px;
-	margin-top: 16px;
+	gap: 20px;
+	margin-top: 20px;
+	padding-top: 20px;
+	border-top: 1px solid var(--border);
+}
+.camera-settings-intro,
+.camera-optional-note {
+	margin: 0;
+	font-weight: 600;
+}
+.camera-choice-group {
+	min-width: 0;
+	padding: 0;
+	margin: 0;
+	border: 0;
+}
+.camera-choice-group legend {
+	padding: 0;
+	margin-bottom: 8px;
+	font-weight: 700;
+}
+.camera-choice-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px;
+}
+.camera-settings .camera-choice {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	padding: 12px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--surface);
+	cursor: pointer;
+}
+.camera-choice:hover {
+	border-color: var(--primary);
+}
+.camera-choice:has(input:checked) {
+	border-color: var(--primary);
+	background: var(--primary-soft);
+	box-shadow: inset 0 0 0 1px var(--primary);
+}
+.camera-choice:has(input:focus-visible) {
+	outline: 3px solid var(--primary);
+	outline-offset: 3px;
+}
+.camera-choice input {
+	width: 18px;
+	height: 18px;
+	margin-top: 4px;
+	flex-shrink: 0;
+	accent-color: var(--primary);
+}
+.camera-choice-copy {
+	display: grid;
+	gap: 4px;
+}
+.camera-choice-state {
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--muted);
+}
+.camera-choice:has(input:checked) .camera-choice-state {
+	color: var(--primary);
+}
+.camera-sharing {
+	padding-top: 16px;
+	border-top: 1px solid var(--border);
+}
+.session-guide-scroll > .camera-panel {
+	padding: 16px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--background);
+}
+.session-guide-flow {
+	margin-top: 24px;
+	padding-top: 24px;
+	border-top: 1px solid var(--border);
+}
+.session-guide-flow h3 {
+	margin: 0 0 4px;
+}
+.session-guide-flow > p {
+	margin: 0;
+	color: var(--muted);
 }
 .camera-settings label {
 	display: grid;
@@ -106,6 +192,9 @@
 	overflow: visible;
 }
 @media (max-width: 480px) {
+	.camera-choice-grid {
+		grid-template-columns: 1fr;
+	}
 	.camera-metrics {
 		grid-template-columns: 1fr;
 		gap: 12px;
