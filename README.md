@@ -114,6 +114,8 @@ flowchart LR
 
 리포트 생성 중에는 중복 요청을 막습니다. 실패하면 대화를 유지하고 재시도할 수 있으며, 실제 AI 오류를 데모 결과로 바꾸지 않습니다.
 
+연습 나가기, 임시 기록 교체·삭제, 완료 기록 삭제는 앱 안의 확인 모달로 안내합니다. 취소에 먼저 포커스를 두고 Escape로 닫으면 원래 버튼으로 돌아옵니다. 화면·리포트 탭·새 대화·힌트에는 짧은 등장 효과가 있으며, 운영체제의 모션 감소 설정을 따릅니다. 연습 화면을 떠날 때는 애니메이션을 기다리지 않고 장치를 정리합니다.
+
 <details>
 <summary><strong>음성 연결과 발표 질문 주기</strong></summary>
 
@@ -276,6 +278,7 @@ node tests/camera-realtime.cjs
 node tests/camera-failures.cjs
 node tests/learning-browser.cjs
 node tests/learning-realtime.cjs
+node tests/ui-interactions.cjs
 ```
 
 카메라 브라우저 회귀 검사는 모델 결과를 대체하고, RTC 검사는 음성 서버 이벤트를 대체합니다. 이 검사들은 실제 사람의 시선 정확도나 OpenAI의 다회차 대화 품질을 증명하지 않습니다.
