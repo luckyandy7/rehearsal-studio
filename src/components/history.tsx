@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 import { Button } from "@/components/ui";
 import { modeLabels, type PracticeRecord } from "@/lib/types";
+import { useConfirmation } from "./confirmation";
 import "./screens.css";
 
 type Props = {
@@ -20,12 +21,13 @@ type Props = {
 };
 export function History({ records, onOpen, onDelete, onStart }: Props) {
 	const [filter, setFilter] = useState("all");
-	const [deleting, setDeleting] = useState<string | null>(null);
+	const confirmation = useConfirmation();
 	const visible = records.filter(
 		(record) => filter === "all" || record.config.mode === filter,
 	);
 	return (
 		<div className="screen-stack">
+			{confirmation.dialog}
 			<header className="history-heading">
 				<div className="screen-heading compact">
 					<span className="eyebrow">YOUR PRACTICE JOURNAL</span>
@@ -105,33 +107,19 @@ export function History({ records, onOpen, onDelete, onStart }: Props) {
 									<Button
 										variant="ghost"
 										aria-label={`${record.config.role} 기록 삭제`}
-										onClick={() => setDeleting(record.id)}
+										onClick={() =>
+											confirmation.confirm({
+												title: "이 연습 기록을 삭제할까요?",
+												description: `${record.config.role}의 대화와 리포트가 삭제됩니다. 보관하려면 취소 후 리포트를 먼저 내려받으세요. 삭제하면 복구할 수 없어요.`,
+												label: "삭제하기",
+												danger: true,
+												onConfirm: () => onDelete(record.id),
+											})
+										}
 									>
 										<Trash size={20} />
 									</Button>
 								</div>
-								{deleting === record.id && (
-									<div className="delete-confirm" role="alert">
-										<p>이 기록을 삭제할까요? 삭제하면 복구할 수 없어요.</p>
-										<div>
-											<Button
-												variant="secondary"
-												onClick={() => setDeleting(null)}
-											>
-												취소
-											</Button>
-											<Button
-												variant="danger"
-												onClick={() => {
-													onDelete(record.id);
-													setDeleting(null);
-												}}
-											>
-												삭제하기
-											</Button>
-										</div>
-									</div>
-								)}
 							</li>
 						))}
 					</ul>

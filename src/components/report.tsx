@@ -8,7 +8,7 @@ import {
 	Target,
 } from "@phosphor-icons/react";
 import { useState } from "react";
-import { Button, ProgressRing } from "@/components/ui";
+import { Button, ProgressRing, ViewTransition } from "@/components/ui";
 import { exportRecord } from "@/lib/storage";
 import {
 	modeLabels,
@@ -131,96 +131,101 @@ export function ReportView({ record, onBack, onRetry }: Props) {
 					대화 기록 <span>{record.messages.length}</span>
 				</button>
 			</div>
-			{tab === "learning" ? (
-				<LearningReview record={record} onRetry={onRetry} />
-			) : tab === "camera" ? (
-				<CameraFeedback
-					analysis={record.cameraAnalysis}
-					messages={record.messages}
-				/>
-			) : tab === "feedback" ? (
-				<div className="screen-stack">
-					<div className="feedback-grid">
-						<section className="form-panel feedback-positive">
-							<h2>
-								<CheckCircle size={23} /> 잘한 점
-							</h2>
-							<ul>
-								{record.report.strengths.map((item, index) => (
-									<li key={`${index}-${item}`}>{item}</li>
-								))}
-							</ul>
-						</section>
+			<ViewTransition viewKey={tab}>
+				{tab === "learning" ? (
+					<LearningReview record={record} onRetry={onRetry} />
+				) : tab === "camera" ? (
+					<CameraFeedback
+						analysis={record.cameraAnalysis}
+						messages={record.messages}
+					/>
+				) : tab === "feedback" ? (
+					<div className="screen-stack">
+						<div className="feedback-grid">
+							<section className="form-panel feedback-positive">
+								<h2>
+									<CheckCircle size={23} /> 잘한 점
+								</h2>
+								<ul>
+									{record.report.strengths.map((item, index) => (
+										<li key={`${index}-${item}`}>{item}</li>
+									))}
+								</ul>
+							</section>
+							<section className="form-panel">
+								<h2>
+									<Target size={23} /> 다음에 바꿔볼 점
+								</h2>
+								<ul className="feedback-list">
+									{record.report.improvements.map((item, index) => (
+										<li key={`${index}-${item}`}>{item}</li>
+									))}
+								</ul>
+							</section>
+						</div>
 						<section className="form-panel">
 							<h2>
-								<Target size={23} /> 다음에 바꿔볼 점
+								<Quotes size={23} /> 내 답변에서 찾은 근거
 							</h2>
-							<ul className="feedback-list">
-								{record.report.improvements.map((item, index) => (
+							{record.report.evidence.length === 0 ? (
+								<p className="muted-text">
+									아직 구체적인 발언 근거가 충분하지 않아요. 다음 연습에서
+									경험과 결과를 조금 더 자세히 말해 보세요.
+								</p>
+							) : (
+								<div className="evidence-list">
+									{record.report.evidence.map((item, index) => (
+										<article key={`${index}-${item.quote}`}>
+											<blockquote>“{item.quote}”</blockquote>
+											<p>{item.feedback}</p>
+										</article>
+									))}
+								</div>
+							)}
+						</section>
+						<section className="next-exercises">
+							<span className="eyebrow">YOUR NEXT STEP</span>
+							<h2>다음 리허설에서는</h2>
+							<ol>
+								{record.report.exercises.map((item, index) => (
 									<li key={`${index}-${item}`}>{item}</li>
 								))}
-							</ul>
+							</ol>
+							<Button
+								variant="secondary"
+								onClick={() => onRetry(record.config)}
+							>
+								같은 자료로 한 번 더 <ArrowClockwise size={18} />
+							</Button>
 						</section>
 					</div>
+				) : (
 					<section className="form-panel">
-						<h2>
-							<Quotes size={23} /> 내 답변에서 찾은 근거
-						</h2>
-						{record.report.evidence.length === 0 ? (
-							<p className="muted-text">
-								아직 구체적인 발언 근거가 충분하지 않아요. 다음 연습에서 경험과
-								결과를 조금 더 자세히 말해 보세요.
-							</p>
-						) : (
-							<div className="evidence-list">
-								{record.report.evidence.map((item, index) => (
-									<article key={`${index}-${item.quote}`}>
-										<blockquote>“{item.quote}”</blockquote>
-										<p>{item.feedback}</p>
+						<h2>전체 대화</h2>
+						{record.config.mode === "interview" && (
+							<EmployerMaterials context={record.config.interviewContext} />
+						)}
+						<div className="report-transcript">
+							{record.messages.length === 0 ? (
+								<p>저장된 대화가 없습니다.</p>
+							) : (
+								record.messages.map((message, index) => (
+									<article
+										key={`${index}-${message.role}`}
+										className={`transcript-entry ${message.role}`}
+									>
+										<span>
+											{message.role === "user" ? "나의 답변" : "AI 질문"}
+										</span>
+										<p>{message.content}</p>
+										<QuestionSources sources={message.sources} />
 									</article>
-								))}
-							</div>
-						)}
+								))
+							)}
+						</div>
 					</section>
-					<section className="next-exercises">
-						<span className="eyebrow">YOUR NEXT STEP</span>
-						<h2>다음 리허설에서는</h2>
-						<ol>
-							{record.report.exercises.map((item, index) => (
-								<li key={`${index}-${item}`}>{item}</li>
-							))}
-						</ol>
-						<Button variant="secondary" onClick={() => onRetry(record.config)}>
-							같은 자료로 한 번 더 <ArrowClockwise size={18} />
-						</Button>
-					</section>
-				</div>
-			) : (
-				<section className="form-panel">
-					<h2>전체 대화</h2>
-					{record.config.mode === "interview" && (
-						<EmployerMaterials context={record.config.interviewContext} />
-					)}
-					<div className="report-transcript">
-						{record.messages.length === 0 ? (
-							<p>저장된 대화가 없습니다.</p>
-						) : (
-							record.messages.map((message, index) => (
-								<article
-									key={`${index}-${message.role}`}
-									className={`transcript-entry ${message.role}`}
-								>
-									<span>
-										{message.role === "user" ? "나의 답변" : "AI 질문"}
-									</span>
-									<p>{message.content}</p>
-									<QuestionSources sources={message.sources} />
-								</article>
-							))
-						)}
-					</div>
-				</section>
-			)}
+				)}
+			</ViewTransition>
 			<p className="storage-note">
 				AI 피드백은 연습을 돕기 위한 참고 자료입니다. 채용 결과나 실제 심사
 				점수를 예측하지 않습니다.

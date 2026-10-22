@@ -24,13 +24,14 @@ import type {
 	SessionConfig,
 	SessionDraft,
 } from "@/lib/types";
+import { useConfirmation } from "./confirmation";
 import { History } from "./history";
 import { Home } from "./home";
 import { ReportView } from "./report";
 import { Session } from "./session";
 import { SessionGuide } from "./session-guide";
 import { Setup } from "./setup";
-import { Button } from "./ui";
+import { Button, ViewTransition } from "./ui";
 
 type View =
 	| { kind: "home" | "history" }
@@ -44,6 +45,7 @@ type View =
 	| { kind: "report"; record: PracticeRecord };
 export function StudioApp() {
 	const camera = useCameraAnalysis();
+	const confirmation = useConfirmation();
 	const [view, setView] = useState<View>({ kind: "home" });
 	const [records, setRecords] = useState<PracticeRecord[]>([]);
 	const [notice, setNotice] = useState("");
@@ -53,12 +55,7 @@ export function StudioApp() {
 		null,
 	);
 	const entryFocus = useRef<HTMLElement | null>(null);
-	const prepareSession = (config: SessionConfig) => {
-		if (
-			draft &&
-			!window.confirm("진행 중인 연습의 임시 기록을 새 연습으로 바꿀까요?")
-		)
-			return;
+	const openGuide = (config: SessionConfig) => {
 		resumeDraft.current = null;
 		camera.reset();
 		camera.setSettings(
@@ -73,6 +70,19 @@ export function StudioApp() {
 				? document.activeElement
 				: null;
 		setPendingSession(config);
+	};
+	const prepareSession = (config: SessionConfig) => {
+		if (!draft) {
+			openGuide(config);
+			return;
+		}
+		confirmation.confirm({
+			title: "새 연습으로 바꿀까요?",
+			description:
+				"입장하면 진행 중인 임시 기록이 새 연습으로 바뀝니다. 완료한 연습 기록은 그대로 남아요.",
+			label: "새 연습 준비",
+			onConfirm: () => openGuide(config),
+		});
 	};
 	useEffect(() => {
 		try {
@@ -93,15 +103,19 @@ export function StudioApp() {
 		return () => window.removeEventListener("beforeunload", warn);
 	}, [view.kind]);
 	const navigate = (next: View) => {
-		if (
-			view.kind === "session" &&
-			!window.confirm(
-				"연습을 나갈까요? 저장된 임시 기록은 홈에서 이어갈 수 있습니다.",
-			)
-		)
-			return;
-		camera.stop();
-		setView(next);
+		const leave = () => {
+			camera.stop();
+			setView(next);
+		};
+		if (view.kind === "session") {
+			confirmation.confirm({
+				title: "연습을 잠시 나갈까요?",
+				description:
+					"확정된 대화와 입력 중인 답변은 임시 기록으로 남습니다. 홈에서 이어갈 수 있고, 마이크와 카메라는 종료됩니다.",
+				label: "저장하고 나가기",
+				onConfirm: leave,
+			});
+		} else leave();
 	};
 	const start = (mode: Mode) => navigate({ kind: "setup", mode });
 	const save = (next: PracticeRecord[]) => {
@@ -116,6 +130,7 @@ export function StudioApp() {
 	};
 	return (
 		<div className="app-shell">
+			{confirmation.dialog}
 			{pendingSession && (
 				<SessionGuide
 					config={pendingSession}
@@ -240,7 +255,7 @@ export function StudioApp() {
 						</Dialog.Root>
 					</div>
 				</header>
-				<main id="main" className="content">
+				<main id="main" className="content" tabIndex={-1}>
 					{notice && (
 						<p className="error-box" role="status">
 							{notice}
@@ -270,6 +285,10 @@ export function StudioApp() {
 											},
 										);
 										resumeDraft.current = draft;
+										entryFocus.current =
+											document.activeElement instanceof HTMLElement
+												? document.activeElement
+												: null;
 										setPendingSession(draft.config);
 									}}
 								>
@@ -278,13 +297,21 @@ export function StudioApp() {
 								<Button
 									variant="secondary"
 									onClick={() => {
-										if (!window.confirm("임시 기록을 삭제할까요?")) return;
-										try {
-											clearDraft();
-											setDraft(null);
-										} catch {
-											setNotice("임시 기록을 삭제하지 못했습니다.");
-										}
+										confirmation.confirm({
+											title: "임시 기록을 삭제할까요?",
+											description:
+												"진행 중이던 답변과 분석 기록을 삭제합니다. 삭제한 임시 기록은 복구할 수 없어요.",
+											label: "임시 기록 삭제하기",
+											danger: true,
+											onConfirm: () => {
+												try {
+													clearDraft();
+													setDraft(null);
+												} catch {
+													setNotice("임시 기록을 삭제하지 못했습니다.");
+												}
+											},
+										});
 									}}
 								>
 									임시 기록 삭제
@@ -292,67 +319,79 @@ export function StudioApp() {
 							</div>
 						</section>
 					)}
-					{view.kind === "home" && (
-						<Home
-							records={records}
-							onStart={start}
-							onHistory={() => navigate({ kind: "history" })}
-							onOpen={(record) => setView({ kind: "report", record })}
-						/>
-					)}
-					{view.kind === "setup" && (
-						<Setup
-							key={view.mode}
-							mode={view.mode}
-							onBack={() => setView({ kind: "home" })}
-							onStart={prepareSession}
-						/>
-					)}
-					{view.kind === "session" && (
-						<Session
-							key={view.id}
-							config={view.config}
-							camera={camera}
-							initialDraft={view.draft}
-							onDraft={(next) => {
-								try {
-									writeDraft(next);
-									setDraft(next);
-								} catch {
-									setNotice(
-										"임시 저장이 실패했습니다. 이 페이지를 닫기 전에 리포트를 내려받아 주세요.",
-									);
+					<ViewTransition
+						viewKey={
+							view.kind === "session"
+								? view.id
+								: view.kind === "report"
+									? view.record.id
+									: view.kind === "setup"
+										? `setup-${view.mode}`
+										: view.kind
+						}
+					>
+						{view.kind === "home" && (
+							<Home
+								records={records}
+								onStart={start}
+								onHistory={() => navigate({ kind: "history" })}
+								onOpen={(record) => setView({ kind: "report", record })}
+							/>
+						)}
+						{view.kind === "setup" && (
+							<Setup
+								key={view.mode}
+								mode={view.mode}
+								onBack={() => setView({ kind: "home" })}
+								onStart={prepareSession}
+							/>
+						)}
+						{view.kind === "session" && (
+							<Session
+								key={view.id}
+								config={view.config}
+								camera={camera}
+								initialDraft={view.draft}
+								onDraft={(next) => {
+									try {
+										writeDraft(next);
+										setDraft(next);
+									} catch {
+										setNotice(
+											"임시 저장이 실패했습니다. 이 페이지를 닫기 전에 리포트를 내려받아 주세요.",
+										);
+									}
+								}}
+								onComplete={(record) => {
+									try {
+										clearDraft();
+										setDraft(null);
+									} catch {
+										setNotice("완료했지만 임시 기록을 삭제하지 못했습니다.");
+									}
+									save([record, ...records].slice(0, 30));
+									setView({ kind: "report", record });
+								}}
+							/>
+						)}
+						{view.kind === "history" && (
+							<History
+								records={records}
+								onOpen={(record) => setView({ kind: "report", record })}
+								onDelete={(id) =>
+									save(records.filter((record) => record.id !== id))
 								}
-							}}
-							onComplete={(record) => {
-								try {
-									clearDraft();
-									setDraft(null);
-								} catch {
-									setNotice("완료했지만 임시 기록을 삭제하지 못했습니다.");
-								}
-								save([record, ...records].slice(0, 30));
-								setView({ kind: "report", record });
-							}}
-						/>
-					)}
-					{view.kind === "history" && (
-						<History
-							records={records}
-							onOpen={(record) => setView({ kind: "report", record })}
-							onDelete={(id) =>
-								save(records.filter((record) => record.id !== id))
-							}
-							onStart={() => setView({ kind: "home" })}
-						/>
-					)}
-					{view.kind === "report" && (
-						<ReportView
-							record={view.record}
-							onBack={() => setView({ kind: "history" })}
-							onRetry={prepareSession}
-						/>
-					)}
+								onStart={() => setView({ kind: "home" })}
+							/>
+						)}
+						{view.kind === "report" && (
+							<ReportView
+								record={view.record}
+								onBack={() => setView({ kind: "history" })}
+								onRetry={prepareSession}
+							/>
+						)}
+					</ViewTransition>
 				</main>
 				<footer className="app-footer">
 					리허설 · 정답보다, 더 나은 다음 답변을 위해.

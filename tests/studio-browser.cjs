@@ -177,6 +177,9 @@ const base = process.env.TEST_BASE_URL || "http://127.0.0.1:3001";
 			.first()
 			.click();
 		await page.getByRole("button", { name: "삭제하기", exact: true }).click();
+		await page.waitForFunction(
+			() => document.querySelectorAll(".record-open").length === 1,
+		);
 		assert.equal(await page.locator(".record-open").count(), 1);
 		await page.reload();
 		await page.waitForTimeout(700);

@@ -1,11 +1,6 @@
 "use client";
 import { CircleNotch } from "@phosphor-icons/react";
-import {
-	AnimatePresence,
-	animate,
-	motion,
-	useReducedMotion,
-} from "motion/react";
+import { animate, motion, useReducedMotion } from "motion/react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useEffect, useRef } from "react";
 
@@ -94,17 +89,14 @@ export function ViewTransition({
 }) {
 	const reduce = useReducedMotion();
 	return (
-		<AnimatePresence mode="wait" initial={false}>
-			<motion.div
-				key={viewKey}
-				initial={{ opacity: 0, y: reduce ? 0 : 8 }}
-				animate={{ opacity: 1, y: 0 }}
-				exit={{ opacity: 0 }}
-				transition={{ duration: reduce ? 0 : 0.22 }}
-			>
-				{children}
-			</motion.div>
-		</AnimatePresence>
+		<motion.div
+			key={viewKey}
+			initial={{ opacity: 0, y: reduce ? 0 : 8 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ duration: reduce ? 0 : 0.22 }}
+		>
+			{children}
+		</motion.div>
 	);
 }
 export function Waveform({

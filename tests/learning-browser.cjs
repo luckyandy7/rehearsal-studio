@@ -167,7 +167,16 @@ const base = process.env.TEST_BASE_URL || "http://127.0.0.1:3001";
 			0,
 		);
 		await page.getByRole("button", { name: "연습실 홈", exact: true }).click();
+		await page
+			.getByRole("button", { name: "저장하고 나가기", exact: true })
+			.click();
 		await page.getByRole("button", { name: "임시 기록 삭제" }).click();
+		await page
+			.getByRole("button", { name: "임시 기록 삭제하기", exact: true })
+			.click();
+		await page.waitForFunction(
+			() => localStorage.getItem("rehearsal-draft-v1") === null,
+		);
 		assert.equal(
 			await page.evaluate(() => localStorage.getItem("rehearsal-draft-v1")),
 			null,
