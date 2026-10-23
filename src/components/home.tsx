@@ -7,6 +7,7 @@ import {
 	Microphone,
 	PresentationChart,
 } from "@phosphor-icons/react";
+import { useEffect, useRef } from "react";
 import { Button, CountUp } from "@/components/ui";
 import { type Mode, modeLabels, type PracticeRecord } from "@/lib/types";
 import "./screens.css";
@@ -18,8 +19,44 @@ type Props = {
 	readonly onOpen: (record: PracticeRecord) => void;
 };
 export function Home({ records, onStart, onHistory, onOpen }: Props) {
+	const entrance = useRef<HTMLDivElement>(null);
+	useEffect(() => {
+		const animations: Animation[] = [];
+		const frame = requestAnimationFrame(() => {
+			if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+			try {
+				if (sessionStorage.getItem("rehearsal-home-intro")) return;
+				sessionStorage.setItem("rehearsal-home-intro", "seen");
+			} catch {
+				return;
+			}
+			const elements = entrance.current?.querySelectorAll(
+				".screen-heading > *, .mode-card, .home-bottom > *",
+			);
+			elements?.forEach((element, index) => {
+				animations.push(
+					element.animate(
+						[
+							{ opacity: 0, transform: "translateY(18px)" },
+							{ opacity: 1, transform: "translateY(0)" },
+						],
+						{
+							duration: 550,
+							delay: index * 75,
+							easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+							fill: "backwards",
+						},
+					),
+				);
+			});
+		});
+		return () => {
+			cancelAnimationFrame(frame);
+			for (const animation of animations) animation.cancel();
+		};
+	}, []);
 	return (
-		<div className="screen-stack">
+		<div className="screen-stack home-entrance" ref={entrance}>
 			<header className="screen-heading">
 				<span className="eyebrow">YOUR PRACTICE STUDIO</span>
 				<h1>

@@ -91,7 +91,7 @@ export function ViewTransition({
 	return (
 		<motion.div
 			key={viewKey}
-			initial={{ opacity: 0, y: reduce ? 0 : 8 }}
+			initial={viewKey === "home" ? false : { opacity: 0, y: reduce ? 0 : 8 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: reduce ? 0 : 0.22 }}
 		>
