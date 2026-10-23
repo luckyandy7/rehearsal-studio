@@ -205,3 +205,18 @@
 		width: 100%;
 	}
 }
+.button.hint-button {
+	background: var(--success);
+	border-color: var(--success);
+	color: var(--surface);
+}
+.button.hint-button:hover:not(:disabled) {
+	background: color-mix(in srgb, var(--success) 85%, black);
+	color: var(--surface);
+}
+.button.hint-button:disabled {
+	background: var(--success-soft);
+	border-color: var(--success-soft);
+	color: var(--success);
+	opacity: 1;
+}

@@ -273,7 +273,7 @@ export function StudioApp() {
 								확정 자막과 입력 중인 글을 복원합니다. 음성·카메라는 다시
 								연결해야 하며, 이전 카메라 관찰은 보관됩니다.
 							</p>
-							<div className="session-controls">
+							<div className="draft-actions">
 								<Button
 									onClick={() => {
 										camera.reset();

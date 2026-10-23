@@ -1021,3 +1021,10 @@
 .session-guide-actions {
 	flex-shrink: 0;
 }
+.draft-actions {
+	display: flex;
+	justify-content: flex-start;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-top: 16px;
+}

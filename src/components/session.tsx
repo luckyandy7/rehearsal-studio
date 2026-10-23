@@ -1,4 +1,5 @@
 "use client";
+import { Record, Stop } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CameraController } from "@/hooks/use-camera-analysis";
 import { useRealtime } from "@/hooks/use-realtime";
@@ -50,6 +51,12 @@ export function Session({
 				: []),
 	);
 	const [answer, setAnswer] = useState(initialDraft?.answer ?? "");
+	const [showRestoreNotice, setShowRestoreNotice] = useState(!!initialDraft);
+	useEffect(() => {
+		if (!showRestoreNotice) return;
+		const timer = window.setTimeout(() => setShowRestoreNotice(false), 5000);
+		return () => window.clearTimeout(timer);
+	}, [showRestoreNotice]);
 	const [hintsUsed, setHintsUsed] = useState(initialDraft?.hintsUsed ?? 0);
 	const hintRef = useRef(hintsUsed);
 	hintRef.current = hintsUsed;
@@ -393,7 +400,7 @@ export function Session({
 					사용하지 않습니다.
 				</p>
 			)}
-			{initialDraft && (
+			{showRestoreNotice && (
 				<p className="demo-banner">
 					임시 기록을 복원했어요. 계속하기를 누르거나 음성을 다시 연결하세요.
 					완료되지 않은 음성 자막은 복원되지 않습니다.
@@ -618,7 +625,7 @@ export function Session({
 						</p>
 						<div className="session-controls">
 							<Button
-								variant="secondary"
+								variant="danger"
 								busy={coach.connecting}
 								disabled={connected || busy}
 								onClick={() => {
@@ -626,6 +633,11 @@ export function Session({
 									else void coach.start();
 								}}
 							>
+								{coach.active ? (
+									<Stop size={18} weight="fill" aria-hidden />
+								) : (
+									<Record size={18} weight="fill" aria-hidden />
+								)}
 								{coach.active ? "분석 마치기" : "말하기 분석 시작"}
 							</Button>
 						</div>
@@ -657,6 +669,7 @@ export function Session({
 									<p>힌트 사용 단계는 답변과 함께 기록됩니다.</p>
 									<Button
 										variant="secondary"
+										className="hint-button"
 										disabled={busy || paused || hintsUsed >= hints.length}
 										onClick={() => setHintsUsed((n) => Math.min(3, n + 1))}
 									>
