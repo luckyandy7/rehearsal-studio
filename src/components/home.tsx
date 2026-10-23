@@ -8,6 +8,7 @@ import {
 	PresentationChart,
 } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { Button, CountUp } from "@/components/ui";
 import { type Mode, modeLabels, type PracticeRecord } from "@/lib/types";
 import "./screens.css";
@@ -69,8 +70,26 @@ export function Home({ records, onStart, onHistory, onOpen }: Props) {
 				<span>Practice makes possibility.</span>
 				<div className="studio-ticker-window" aria-hidden="true">
 					<div className="studio-ticker" data-paused={motionPaused}>
-						<span>rehearsal —&nbsp;</span>
-						<span>rehearsal —&nbsp;</span>
+						<span>
+							<Image
+								src="/brand/rehearsal-icon.png"
+								alt=""
+								width={220}
+								height={220}
+								unoptimized
+							/>
+							rehearsal —&nbsp;
+						</span>
+						<span>
+							<Image
+								src="/brand/rehearsal-icon.png"
+								alt=""
+								width={220}
+								height={220}
+								unoptimized
+							/>
+							rehearsal —&nbsp;
+						</span>
 					</div>
 				</div>
 				<button

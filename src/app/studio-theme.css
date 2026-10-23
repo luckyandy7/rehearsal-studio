@@ -268,7 +268,16 @@ html:root .studio-ticker {
 	width: max-content;
 }
 html:root .studio-ticker > span {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.06em;
 	flex: none;
+}
+html:root .studio-ticker > span > img {
+	width: 1.08em;
+	height: 1.08em;
+	object-fit: contain;
+	flex-shrink: 0;
 }
 html:root .studio-motion-toggle {
 	background: transparent;
