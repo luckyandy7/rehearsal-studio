@@ -5,11 +5,11 @@ import {
 	Microphone,
 	PresentationChart,
 	Question,
-	Waveform,
 	X,
 } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { motion, useReducedMotion } from "motion/react";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useCameraAnalysis } from "@/hooks/use-camera-analysis";
 import { useLayoutMotion } from "@/hooks/use-layout-motion";
@@ -167,9 +167,14 @@ export function StudioApp() {
 					className="brand"
 					onClick={() => navigate({ kind: "home" })}
 				>
-					<span className="brand-mark">
-						<Waveform size={23} weight="bold" />
-					</span>
+					<Image
+						className="brand-icon"
+						src="/brand/rehearsal-icon.png"
+						alt=""
+						width={40}
+						height={40}
+						unoptimized
+					/>
 					rehearsal
 				</button>
 				<span className="sidebar-label">나만의 연습실</span>

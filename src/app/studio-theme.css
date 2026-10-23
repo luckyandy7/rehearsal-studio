@@ -51,10 +51,18 @@ html:root .brand-mark {
 	display: none;
 }
 html:root .brand {
+	gap: 6px;
 	margin: 0;
 	font-size: 26px;
 	letter-spacing: -0.07em;
 	color: #050505;
+}
+html:root .brand-icon {
+	display: block;
+	width: 40px;
+	height: 40px;
+	object-fit: contain;
+	flex-shrink: 0;
 }
 html:root .nav-button {
 	width: auto;
