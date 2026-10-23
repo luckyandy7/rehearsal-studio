@@ -9,6 +9,7 @@ import {
 	X,
 } from "@phosphor-icons/react";
 import * as Dialog from "@radix-ui/react-dialog";
+import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useCameraAnalysis } from "@/hooks/use-camera-analysis";
 import { useLayoutMotion } from "@/hooks/use-layout-motion";
@@ -45,6 +46,7 @@ type View =
 	  }
 	| { kind: "report"; record: PracticeRecord };
 export function StudioApp() {
+	const reduceMotion = useReducedMotion();
 	useLayoutMotion();
 	const camera = useCameraAnalysis();
 	const confirmation = useConfirmation();
@@ -196,6 +198,19 @@ export function StudioApp() {
 									: navigate({ kind: kind === "home" ? "home" : "history" })
 							}
 						>
+							{(view.kind === kind ||
+								(view.kind === "setup" && view.mode === kind) ||
+								(view.kind === "session" && view.config.mode === kind)) && (
+								<motion.span
+									className="nav-selection"
+									layoutId="studio-nav-selection"
+									aria-hidden
+									transition={{
+										duration: reduceMotion ? 0 : 0.28,
+										ease: [0.22, 1, 0.36, 1],
+									}}
+								/>
+							)}
 							<Icon size={21} />
 							{label}
 						</button>

@@ -334,6 +334,8 @@ button:disabled {
 	gap: 6px;
 }
 .nav-button {
+	position: relative;
+	isolation: isolate;
 	display: flex;
 	align-items: center;
 	gap: 12px;
@@ -347,9 +349,16 @@ button:disabled {
 	text-align: left;
 }
 .nav-button.active {
-	background: var(--primary-soft);
 	color: var(--primary);
 	font-weight: 600;
+}
+.nav-selection {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	background: var(--primary-soft);
+	pointer-events: none;
 }
 .nav-button:hover {
 	background: var(--background);

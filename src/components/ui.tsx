@@ -88,12 +88,20 @@ export function ViewTransition({
 	readonly children: ReactNode;
 }) {
 	const reduce = useReducedMotion();
+	const firstView = useRef(true);
+	useEffect(() => {
+		firstView.current = false;
+	}, []);
 	return (
 		<motion.div
 			key={viewKey}
-			initial={viewKey === "home" ? false : { opacity: 0, y: reduce ? 0 : 8 }}
+			initial={
+				reduce || (viewKey === "home" && firstView.current)
+					? false
+					: { opacity: 0, y: 14 }
+			}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: reduce ? 0 : 0.22 }}
+			transition={{ duration: reduce ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
 		>
 			{children}
 		</motion.div>
