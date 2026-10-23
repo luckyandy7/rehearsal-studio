@@ -270,3 +270,102 @@
 .restore-notice .demo-banner {
 	margin: 0;
 }
+.focused-session {
+	gap: 24px;
+}
+.focused-session .session-heading h1 {
+	font-size: 24px;
+	letter-spacing: -0.03em;
+}
+.focused-session .session-heading p {
+	margin: 4px 0 0;
+	font-size: 14px;
+}
+.focused-session .practice-grid {
+	grid-template-columns: minmax(0, 1fr) 320px;
+	gap: 20px;
+}
+.focused-session .voice-stage {
+	text-align: left;
+	padding: 20px 24px;
+	background: var(--surface);
+	color: var(--foreground);
+	border-bottom: 1px solid var(--border);
+}
+.focused-session .voice-stage h2 {
+	font-size: 17px;
+	margin: 12px 0 4px;
+}
+.focused-session .voice-stage p {
+	color: var(--muted);
+	margin: 4px 0 16px;
+}
+.focused-session .voice-stage .tag {
+	background: var(--primary-soft);
+	color: var(--primary);
+}
+.focused-session .voice-stage .waveform {
+	display: none;
+}
+.focused-session .voice-stage .session-controls {
+	justify-content: flex-start;
+}
+.focused-session .conversation-log {
+	height: clamp(300px, 44vh, 520px);
+	background: var(--background);
+}
+.focused-session .chat-message {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+}
+.focused-session .chat-message.user {
+	background: var(--primary-soft);
+	border-color: transparent;
+}
+.focused-session .practice-aside {
+	grid-template-columns: 1fr;
+	gap: 0;
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	background: var(--surface);
+	overflow: hidden;
+}
+.focused-session .practice-aside .form-panel {
+	border: 0;
+	border-bottom: 1px solid var(--border);
+	border-radius: 0;
+	box-shadow: none;
+	margin: 0;
+}
+.workspace-panel-switch {
+	display: flex;
+	gap: 4px;
+	padding: 8px;
+	border-bottom: 1px solid var(--border);
+	background: var(--background);
+}
+.workspace-panel-switch button {
+	flex: 1;
+	min-height: 44px;
+	border: 1px solid transparent;
+	border-radius: 6px;
+	background: transparent;
+	color: var(--muted);
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+}
+.workspace-panel-switch button[aria-pressed="true"] {
+	background: var(--surface);
+	border-color: var(--border);
+	color: var(--foreground);
+}
+.workspace-panel-body[hidden] {
+	display: none;
+}
+@media (max-width: 1100px) {
+	.focused-session .practice-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

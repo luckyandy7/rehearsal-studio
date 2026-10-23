@@ -44,6 +44,9 @@ export function Session({
 	onDraft: (draft: SessionDraft) => void;
 }) {
 	const [cameraManual, setCameraManual] = useState(false);
+	const [sidePanel, setSidePanel] = useState<"coaching" | "materials">(
+		"coaching",
+	);
 	const reduceMotion = useReducedMotion();
 	const [userSpeaking, setUserSpeaking] = useState(false);
 	const [messages, setMessages] = useState<Message[]>(
@@ -331,7 +334,7 @@ export function Session({
 		}
 	};
 	return (
-		<div className="screen-stack">
+		<div className="screen-stack focused-session">
 			<header className="session-heading">
 				<div>
 					<span className="eyebrow">
@@ -463,7 +466,7 @@ export function Session({
 						<h2>
 							{connected
 								? "편하게 말해 주세요"
-								: "한 번의 답변이, 다음의 자신감으로."}
+								: "질문을 확인하고 답변해 주세요"}
 						</h2>
 						<p>
 							{connected
@@ -631,62 +634,88 @@ export function Session({
 					)}
 				</section>
 				<aside className="practice-aside">
-					{(camera.stream || camera.analysis || camera.error) && (
-						<CameraSessionPanel
-							camera={camera}
-							enabled={cameraEnabled}
-							connected={connected}
-							disabled={!started || paused || busy}
-							onToggle={() => setCameraManual((v) => !v)}
-						/>
-					)}
-					<section className="form-panel session-tool">
-						<span className="eyebrow">선택 도구 · 말하기 습관</span>
-						<h2>마이크 말하기 분석</h2>
-						<p className="context-hint">
-							조용한 곳에서 10초 이상 말해 보세요. 음성 연결 시에도 분석을
-							시도합니다. AI 발화·일시 정지 중에는 측정을 쉽니다. 원본 음성은
-							저장하지 않아요.
-						</p>
-						<div className="session-controls">
-							<Button
-								variant="danger"
-								busy={coach.connecting}
-								disabled={connected || busy}
-								onClick={() => {
-									if (coach.active) coach.stop();
-									else void coach.start();
-								}}
-							>
-								{coach.active ? (
-									<Stop size={18} weight="fill" aria-hidden />
-								) : (
-									<Record size={18} weight="fill" aria-hidden />
-								)}
-								{coach.active ? "분석 마치기" : "말하기 분석 시작"}
-							</Button>
-						</div>
-						{coach.active && (
-							<p role="status">
-								마이크 분석 중 · {Math.floor(coach.seconds)}초
-							</p>
+					<div className="workspace-panel-switch">
+						<button
+							type="button"
+							aria-pressed={sidePanel === "coaching"}
+							onClick={() => setSidePanel("coaching")}
+						>
+							코칭 도구
+						</button>
+						<button
+							type="button"
+							aria-pressed={sidePanel === "materials"}
+							onClick={() => setSidePanel("materials")}
+						>
+							참고 자료
+						</button>
+					</div>
+					<div
+						className="workspace-panel-body"
+						hidden={sidePanel !== "coaching"}
+					>
+						{(camera.stream || camera.analysis || camera.error) && (
+							<CameraSessionPanel
+								camera={camera}
+								enabled={cameraEnabled}
+								connected={connected}
+								disabled={!started || paused || busy}
+								onToggle={() => setCameraManual((v) => !v)}
+							/>
 						)}
-						{coach.error && (
-							<p className="error-box" role="alert">
-								{coach.error}
+						<section className="form-panel session-tool">
+							<span className="eyebrow">선택 도구 · 말하기 습관</span>
+							<h2>마이크 말하기 분석</h2>
+							<p className="context-hint">
+								조용한 곳에서 10초 이상 말해 보세요. 음성 연결 시에도 분석을
+								시도합니다. AI 발화·일시 정지 중에는 측정을 쉽니다. 원본 음성은
+								저장하지 않아요.
 							</p>
+							<div className="session-controls">
+								<Button
+									variant="danger"
+									busy={coach.connecting}
+									disabled={connected || busy}
+									onClick={() => {
+										if (coach.active) coach.stop();
+										else void coach.start();
+									}}
+								>
+									{coach.active ? (
+										<Stop size={18} weight="fill" aria-hidden />
+									) : (
+										<Record size={18} weight="fill" aria-hidden />
+									)}
+									{coach.active ? "분석 마치기" : "말하기 분석 시작"}
+								</Button>
+							</div>
+							{coach.active && (
+								<p role="status">
+									마이크 분석 중 · {Math.floor(coach.seconds)}초
+								</p>
+							)}
+							{coach.error && (
+								<p className="error-box" role="alert">
+									{coach.error}
+								</p>
+							)}
+							<VoiceFeedback analysis={coach.analysis} />
+						</section>
+					</div>
+					<div
+						className="workspace-panel-body"
+						hidden={sidePanel !== "materials"}
+					>
+						{config.mode === "interview" && (
+							<EmployerMaterials context={config.interviewContext} />
 						)}
-						<VoiceFeedback analysis={coach.analysis} />
-					</section>
-					{config.mode === "interview" && (
-						<EmployerMaterials context={config.interviewContext} />
-					)}
-					<details className="form-panel session-reference">
-						<summary>
-							오늘의 연습 자료 <span>펼쳐보기</span>
-						</summary>
-						<p className="material-text">{config.material}</p>
-					</details>
+						<details className="form-panel session-reference">
+							<summary>
+								오늘의 연습 자료 <span>펼쳐보기</span>
+							</summary>
+							<p className="material-text">{config.material}</p>
+						</details>
+					</div>
 					<section className="form-panel">
 						<span className="eyebrow">답변 도움</span>
 						<h2>힌트와 연습 안내</h2>

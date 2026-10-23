@@ -1,11 +1,11 @@
 @import "tailwindcss";
 @source "../components";
 :root {
-	--background: #f7f8fa;
+	--background: #f8f9fb;
 	--surface: #fff;
 	--foreground: #202735;
 	--muted: #596477;
-	--border: #dce2ea;
+	--border: #e2e5eb;
 	--primary: #2457df;
 	--primary-hover: #1c43ad;
 	--primary-soft: #eaf0ff;
@@ -19,7 +19,7 @@
 	--danger: #b63b42;
 	--danger-soft: #ffedef;
 	--radius: 8px;
-	--panel-radius: 16px;
+	--panel-radius: 12px;
 	--space-1: 4px;
 	--space-2: 8px;
 	--space-3: 12px;
@@ -30,7 +30,7 @@
 	--space-10: 40px;
 	--space-12: 48px;
 	--space-16: 64px;
-	--shadow: 0 8px 32px rgb(23 35 59 / 0.08);
+	--shadow: 0 4px 16px rgb(23 35 59 / 0.05);
 	--font-sans:
 		"Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
 	--duration: 220ms;
@@ -298,8 +298,8 @@ button:disabled {
 	position: sticky;
 	top: 0;
 	height: 100dvh;
-	padding: 32px 20px;
-	background: var(--surface);
+	padding: 24px 16px;
+	background: var(--background);
 	border-right: 1px solid var(--border);
 	display: flex;
 	flex-direction: column;
@@ -377,7 +377,7 @@ button:disabled {
 	min-width: 0;
 }
 .topbar {
-	height: 80px;
+	height: 64px;
 	border-bottom: 1px solid var(--border);
 	padding: 0 clamp(20px, 4vw, 48px);
 	display: flex;
