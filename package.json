@@ -3,8 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev:beta": "REHEARSAL_BETA=1 next dev --webpack --hostname 127.0.0.1 --port 5151",
-    "predev:beta": "pnpm camera:prepare",
     "dev": "next dev --webpack --hostname 127.0.0.1",
     "build": "next build --webpack",
     "start": "next start --hostname 127.0.0.1",

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
-import "./beta.css";
+import "./studio-theme.css";
 export const metadata: Metadata = {
 	title: "리허설 · AI 면접과 발표 연습",
 	description:
@@ -14,7 +14,7 @@ export default function RootLayout({
 	readonly children: React.ReactNode;
 }) {
 	return (
-		<html lang="ko" data-beta={process.env.REHEARSAL_BETA === "1" ? "true" : undefined}>
+		<html lang="ko">
 			<body>
 				{children}
 				{process.env.NODE_ENV === "development" &&

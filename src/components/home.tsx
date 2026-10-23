@@ -23,92 +23,58 @@ export function Home({ records, onStart, onHistory, onOpen }: Props) {
 	const entrance = useRef<HTMLDivElement>(null);
 	useEffect(() => {
 		const animations: Animation[] = [];
-		if (document.documentElement.dataset.beta === "true") {
-			const preference = matchMedia("(prefers-reduced-motion: reduce)");
-			const observer = new IntersectionObserver(
-				(entries) => {
-					for (const entry of entries) {
-						if (!entry.isIntersecting) continue;
-						if (!preference.matches)
-							animations.push(
-								entry.target.animate(
-									[
-										{ opacity: 0, transform: "translateY(48px)" },
-										{ opacity: 1, transform: "translateY(0)" },
-									],
-									{
-										duration: 850,
-										easing: "cubic-bezier(.16,1,.3,1)",
-										fill: "backwards",
-									},
-								),
-							);
-						observer.unobserve(entry.target);
-					}
-				},
-				{ threshold: 0.12 },
-			);
-			entrance.current
-				?.querySelectorAll(".screen-heading, .mode-card, .home-bottom > *")
-				.forEach((element) => {
-					observer.observe(element);
-				});
-			const stop = () => {
-				if (preference.matches)
-					for (const animation of animations) animation.cancel();
-			};
-			preference.addEventListener("change", stop);
-			return () => {
-				observer.disconnect();
-				preference.removeEventListener("change", stop);
-				for (const animation of animations) animation.cancel();
-			};
-		}
-		const frame = requestAnimationFrame(() => {
-			if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-			try {
-				if (sessionStorage.getItem("rehearsal-home-intro")) return;
-				sessionStorage.setItem("rehearsal-home-intro", "seen");
-			} catch {
-				return;
-			}
-			const elements = entrance.current?.querySelectorAll(
-				".screen-heading > *, .mode-card, .home-bottom > *",
-			);
-			elements?.forEach((element, index) => {
-				animations.push(
-					element.animate(
-						[
-							{ opacity: 0, transform: "translateY(18px)" },
-							{ opacity: 1, transform: "translateY(0)" },
-						],
-						{
-							duration: 550,
-							delay: index * 75,
-							easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-							fill: "backwards",
-						},
-					),
-				);
+		const preference = matchMedia("(prefers-reduced-motion: reduce)");
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (!entry.isIntersecting) continue;
+					if (!preference.matches)
+						animations.push(
+							entry.target.animate(
+								[
+									{ opacity: 0, transform: "translateY(48px)" },
+									{ opacity: 1, transform: "translateY(0)" },
+								],
+								{
+									duration: 850,
+									easing: "cubic-bezier(.16,1,.3,1)",
+									fill: "backwards",
+								},
+							),
+						);
+					observer.unobserve(entry.target);
+				}
+			},
+			{ threshold: 0.12 },
+		);
+		entrance.current
+			?.querySelectorAll(".screen-heading, .mode-card, .home-bottom > *")
+			.forEach((element) => {
+				observer.observe(element);
 			});
-		});
+		const stop = () => {
+			if (preference.matches)
+				for (const animation of animations) animation.cancel();
+		};
+		preference.addEventListener("change", stop);
 		return () => {
-			cancelAnimationFrame(frame);
+			observer.disconnect();
+			preference.removeEventListener("change", stop);
 			for (const animation of animations) animation.cancel();
 		};
 	}, []);
 	return (
 		<div className="screen-stack home-entrance" ref={entrance}>
-			<div className="beta-masthead">
+			<div className="studio-masthead">
 				<span>Practice makes possibility.</span>
-				<div className="beta-ticker-window" aria-hidden="true">
-					<div className="beta-ticker" data-paused={motionPaused}>
+				<div className="studio-ticker-window" aria-hidden="true">
+					<div className="studio-ticker" data-paused={motionPaused}>
 						<span>rehearsal —&nbsp;</span>
 						<span>rehearsal —&nbsp;</span>
 					</div>
 				</div>
 				<button
-					className="beta-motion-toggle"
+					className="studio-motion-toggle"
 					type="button"
 					aria-pressed={motionPaused}
 					onClick={() => setMotionPaused(!motionPaused)}
