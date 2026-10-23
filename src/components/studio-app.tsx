@@ -11,6 +11,7 @@ import {
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, useState } from "react";
 import { useCameraAnalysis } from "@/hooks/use-camera-analysis";
+import { useLayoutMotion } from "@/hooks/use-layout-motion";
 import {
 	clearDraft,
 	readDraft,
@@ -44,6 +45,7 @@ type View =
 	  }
 	| { kind: "report"; record: PracticeRecord };
 export function StudioApp() {
+	useLayoutMotion();
 	const camera = useCameraAnalysis();
 	const confirmation = useConfirmation();
 	const [view, setView] = useState<View>({ kind: "home" });
