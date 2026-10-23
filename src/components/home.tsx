@@ -57,6 +57,11 @@ export function Home({ records, onStart, onHistory, onOpen }: Props) {
 	}, []);
 	return (
 		<div className="screen-stack home-entrance" ref={entrance}>
+			<div className="beta-masthead" aria-hidden="true">
+				<span>Practice makes possibility.</span>
+				<div>rehearsal<span>—</span></div>
+				<p>당신의 다음 순간을 위한 연습실.</p>
+			</div>
 			<header className="screen-heading">
 				<span className="eyebrow">YOUR PRACTICE STUDIO</span>
 				<h1>

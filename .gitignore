@@ -7,6 +7,8 @@ __pycache__/
 !.env.example
 node_modules/
 .next/
+.next-beta/
+framer-contextual-badger-802775-fresh-mirror-uzdh/
 .design-tools/sources/
 
 # Local development tools and generated evidence

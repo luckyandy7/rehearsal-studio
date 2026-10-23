@@ -16,3 +16,8 @@ src/components/ui.tsx는 다음 원본의 구현 방식을 참고해 프로젝�
 - Face Landmarker float16 v1 and Pose Landmarker Lite float16 v1 models: official Google model distribution. Source URLs and SHA-256 hashes are pinned in `scripts/camera-assets.json`.
 - `pnpm camera:prepare` copies the installed WASM runtime and downloads/verifies the model files into ignored `public/camera-assets/`. Dev/build runs it automatically. The browser fetches these assets from this app's origin; it sends no camera frames to Google or OpenAI.
 - Implementation uses the Tasks API; no third-party UI component was copied for the camera feature. [Face guide](https://developers.google.com/edge/mediapipe/solutions/vision/face_landmarker/web_js), [Pose guide](https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker/web_js).
+# 베타 디자인 참고 및 폰트
+
+- Asher Vale Framer export: https://contextual-badger-802775.framer.app/ — 타이포와 레이아웃 참고. 외부 작품 이미지와 런타임은 앱에 포함하지 않는다.
+- Manrope: 베타 영문 브랜드에 로컬 폰트 사용. SIL Open Font License는 `public/fonts/manrope/OFL.txt`에 보관한다.
+
