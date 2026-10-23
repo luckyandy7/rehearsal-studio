@@ -7,7 +7,7 @@ import {
 	Microphone,
 	PresentationChart,
 } from "@phosphor-icons/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, CountUp } from "@/components/ui";
 import { type Mode, modeLabels, type PracticeRecord } from "@/lib/types";
 import "./screens.css";
@@ -19,9 +19,51 @@ type Props = {
 	readonly onOpen: (record: PracticeRecord) => void;
 };
 export function Home({ records, onStart, onHistory, onOpen }: Props) {
+	const [motionPaused, setMotionPaused] = useState(false);
 	const entrance = useRef<HTMLDivElement>(null);
 	useEffect(() => {
 		const animations: Animation[] = [];
+		if (document.documentElement.dataset.beta === "true") {
+			const preference = matchMedia("(prefers-reduced-motion: reduce)");
+			const observer = new IntersectionObserver(
+				(entries) => {
+					for (const entry of entries) {
+						if (!entry.isIntersecting) continue;
+						if (!preference.matches)
+							animations.push(
+								entry.target.animate(
+									[
+										{ opacity: 0, transform: "translateY(48px)" },
+										{ opacity: 1, transform: "translateY(0)" },
+									],
+									{
+										duration: 850,
+										easing: "cubic-bezier(.16,1,.3,1)",
+										fill: "backwards",
+									},
+								),
+							);
+						observer.unobserve(entry.target);
+					}
+				},
+				{ threshold: 0.12 },
+			);
+			entrance.current
+				?.querySelectorAll(".screen-heading, .mode-card, .home-bottom > *")
+				.forEach((element) => {
+					observer.observe(element);
+				});
+			const stop = () => {
+				if (preference.matches)
+					for (const animation of animations) animation.cancel();
+			};
+			preference.addEventListener("change", stop);
+			return () => {
+				observer.disconnect();
+				preference.removeEventListener("change", stop);
+				for (const animation of animations) animation.cancel();
+			};
+		}
 		const frame = requestAnimationFrame(() => {
 			if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 			try {
@@ -57,9 +99,22 @@ export function Home({ records, onStart, onHistory, onOpen }: Props) {
 	}, []);
 	return (
 		<div className="screen-stack home-entrance" ref={entrance}>
-			<div className="beta-masthead" aria-hidden="true">
+			<div className="beta-masthead">
 				<span>Practice makes possibility.</span>
-				<div>rehearsal<span>—</span></div>
+				<div className="beta-ticker-window" aria-hidden="true">
+					<div className="beta-ticker" data-paused={motionPaused}>
+						<span>rehearsal —&nbsp;</span>
+						<span>rehearsal —&nbsp;</span>
+					</div>
+				</div>
+				<button
+					className="beta-motion-toggle"
+					type="button"
+					aria-pressed={motionPaused}
+					onClick={() => setMotionPaused(!motionPaused)}
+				>
+					{motionPaused ? "타이포 모션 재생" : "타이포 모션 일시정지"}
+				</button>
 				<p>당신의 다음 순간을 위한 연습실.</p>
 			</div>
 			<header className="screen-heading">
