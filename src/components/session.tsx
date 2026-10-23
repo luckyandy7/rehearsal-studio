@@ -616,7 +616,8 @@ export function Session({
 							onToggle={() => setCameraManual((v) => !v)}
 						/>
 					)}
-					<section className="form-panel">
+					<section className="form-panel session-tool">
+						<span className="eyebrow">선택 도구 · 말하기 습관</span>
 						<h2>마이크 말하기 분석</h2>
 						<p className="context-hint">
 							조용한 곳에서 10초 이상 말해 보세요. 음성 연결 시에도 분석을
@@ -656,12 +657,15 @@ export function Session({
 					{config.mode === "interview" && (
 						<EmployerMaterials context={config.interviewContext} />
 					)}
-					<section className="form-panel">
-						<h2>오늘의 연습 자료</h2>
+					<details className="form-panel session-reference">
+						<summary>
+							오늘의 연습 자료 <span>펼쳐보기</span>
+						</summary>
 						<p className="material-text">{config.material}</p>
-					</section>
+					</details>
 					<section className="form-panel">
-						<h2>연습 안내</h2>
+						<span className="eyebrow">답변 도움</span>
+						<h2>힌트와 연습 안내</h2>
 						{config.practiceStyle !== "simulation" &&
 							messages.some((m) => m.role === "assistant") && (
 								<div className="hint-panel">

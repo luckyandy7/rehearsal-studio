@@ -118,6 +118,49 @@
 .practice-aside {
 	display: grid;
 	gap: 16px;
+	align-items: start;
+}
+.practice-aside .form-panel {
+	padding: 20px;
+	border-top: 3px solid var(--border);
+}
+.practice-aside .session-tool,
+.practice-aside .camera-panel {
+	border-top-color: var(--primary);
+}
+.practice-aside h2 {
+	margin: 4px 0 16px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid var(--border);
+}
+.practice-aside .session-controls {
+	justify-content: flex-start;
+	padding-block: 12px;
+}
+.practice-aside .button {
+	min-height: 44px;
+}
+.practice-aside .session-controls .button,
+.practice-aside .camera-panel > .button {
+	width: 100%;
+}
+.session-reference summary {
+	cursor: pointer;
+	font-weight: 700;
+	min-height: 44px;
+}
+.session-reference summary span {
+	display: block;
+	font-size: 12px;
+	font-weight: 400;
+	color: var(--primary);
+}
+.session-reference[open] summary span {
+	display: none;
+}
+.session-reference summary:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 4px;
 }
 .practice-aside h2 {
 	font-size: 16px;

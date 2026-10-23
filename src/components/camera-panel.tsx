@@ -53,7 +53,11 @@ export function CameraPreparation({
 				수 있어요. 카메라 없이도 모든 면접 기능을 사용할 수 있습니다.
 			</p>
 			{active && <CameraPreview stream={camera.stream} />}
-			{active && <p role="status">{camera.quality}</p>}
+			{active && (
+				<p className="camera-quality" role="status">
+					{camera.quality}
+				</p>
+			)}
 			<div className="camera-actions">
 				{!active && !loading && (
 					<Button variant="secondary" onClick={() => void camera.start()}>
@@ -233,14 +237,14 @@ export function CameraSessionPanel({
 						: "측정 대기 · 질문·휴식 시간은 제외해요"
 					: "촬영 종료"}
 			</p>
-			{camera.stream && <p className="context-hint">{camera.quality}</p>}
+			{camera.stream && <p className="camera-quality">{camera.quality}</p>}
 			{!connected && camera.stream && (
 				<>
 					<p className="context-hint">
 						글을 입력하거나 소리 내어 답하는 동안 직접 측정을 켜 주세요. 글 입력
 						중의 움직임도 포함됩니다.
 					</p>
-					<Button variant="secondary" disabled={disabled} onClick={onToggle}>
+					<Button variant="primary" disabled={disabled} onClick={onToggle}>
 						{enabled ? "답변 측정 마치기" : "답변 측정 시작"}
 					</Button>
 				</>
