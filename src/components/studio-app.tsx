@@ -50,6 +50,7 @@ export function StudioApp() {
 	const [records, setRecords] = useState<PracticeRecord[]>([]);
 	const [notice, setNotice] = useState("");
 	const [draft, setDraft] = useState<SessionDraft | null>(null);
+	const [draftDismissed, setDraftDismissed] = useState(false);
 	const resumeDraft = useRef<SessionDraft | null>(null);
 	const [pendingSession, setPendingSession] = useState<SessionConfig | null>(
 		null,
@@ -105,6 +106,7 @@ export function StudioApp() {
 	const navigate = (next: View) => {
 		const leave = () => {
 			camera.stop();
+			if (view.kind === "session") setDraftDismissed(false);
 			setView(next);
 		};
 		if (view.kind === "session") {
@@ -261,8 +263,20 @@ export function StudioApp() {
 							{notice}
 						</p>
 					)}
-					{draft && view.kind !== "session" && (
-						<section className="form-panel" aria-label="중단된 연습">
+					{draft && !draftDismissed && view.kind !== "session" && (
+						<section className="form-panel draft-card" aria-label="중단된 연습">
+							<button
+								type="button"
+								className="draft-dismiss"
+								aria-label="중단된 연습 안내 닫기"
+								title="안내만 닫기 · 임시 기록은 보관됩니다"
+								onClick={() => {
+									setDraftDismissed(true);
+									document.getElementById("main")?.focus();
+								}}
+							>
+								<X size={20} aria-hidden />
+							</button>
 							<h2>이어서 연습할까요?</h2>
 							<p>
 								{draft.config.role} · 답변{" "}

@@ -1028,3 +1028,27 @@
 	gap: 12px;
 	margin-top: 16px;
 }
+.draft-card {
+	position: relative;
+}
+.draft-card h2 {
+	padding-right: 44px;
+}
+.draft-dismiss {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	display: grid;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	border: 0;
+	border-radius: var(--radius);
+	background: transparent;
+	color: var(--muted);
+	cursor: pointer;
+}
+.draft-dismiss:hover {
+	background: var(--background);
+	color: var(--foreground);
+}
