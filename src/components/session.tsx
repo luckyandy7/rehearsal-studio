@@ -1,5 +1,6 @@
 "use client";
 import { Record, Stop } from "@phosphor-icons/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CameraController } from "@/hooks/use-camera-analysis";
 import { useRealtime } from "@/hooks/use-realtime";
@@ -43,6 +44,7 @@ export function Session({
 	onDraft: (draft: SessionDraft) => void;
 }) {
 	const [cameraManual, setCameraManual] = useState(false);
+	const reduceMotion = useReducedMotion();
 	const [userSpeaking, setUserSpeaking] = useState(false);
 	const [messages, setMessages] = useState<Message[]>(
 		initialDraft?.messages ??
@@ -400,12 +402,34 @@ export function Session({
 					사용하지 않습니다.
 				</p>
 			)}
-			{showRestoreNotice && (
-				<p className="demo-banner">
-					임시 기록을 복원했어요. 계속하기를 누르거나 음성을 다시 연결하세요.
-					완료되지 않은 음성 자막은 복원되지 않습니다.
-				</p>
-			)}
+			<AnimatePresence initial={false}>
+				{showRestoreNotice && (
+					<motion.div
+						className="restore-notice"
+						initial={false}
+						animate={{ height: "auto", opacity: 1, marginBottom: 0 }}
+						exit={{ height: 0, opacity: 0, marginBottom: -32 }}
+						transition={
+							reduceMotion
+								? { duration: 0 }
+								: {
+										opacity: { duration: 0.2 },
+										height: { duration: 0.35, delay: 0.1, ease: "easeInOut" },
+										marginBottom: {
+											duration: 0.35,
+											delay: 0.1,
+											ease: "easeInOut",
+										},
+									}
+						}
+					>
+						<p className="demo-banner">
+							임시 기록을 복원했어요. 계속하기를 누르거나 음성을 다시
+							연결하세요. 완료되지 않은 음성 자막은 복원되지 않습니다.
+						</p>
+					</motion.div>
+				)}
+			</AnimatePresence>
 			{config.retry && (
 				<section className="form-panel">
 					<h2>

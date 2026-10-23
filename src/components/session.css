@@ -263,3 +263,10 @@
 	color: var(--success);
 	opacity: 1;
 }
+.restore-notice {
+	overflow: hidden;
+	flex-shrink: 0;
+}
+.restore-notice .demo-banner {
+	margin: 0;
+}
