@@ -95,9 +95,13 @@
 	margin: 8px 0 0;
 }
 .presentation-card {
-	background: var(--surface);
+	background: var(--success-soft);
 	color: var(--foreground);
-	border-color: var(--border);
+	border-color: color-mix(in srgb, var(--success) 25%, var(--surface));
+}
+.interview-card {
+	background: var(--primary-soft);
+	border-color: color-mix(in srgb, var(--primary) 25%, var(--surface));
 }
 .presentation-card .mode-icon {
 	background: var(--success-soft);
